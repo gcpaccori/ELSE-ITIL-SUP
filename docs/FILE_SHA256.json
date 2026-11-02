@@ -26,7 +26,7 @@
     "examples/qa_queries.synthetic.json": "ab143b3f6fab7f88488bbb314ac6dcb4c36f5e682907e6cae66f4d9080e62b74",
     "examples/resultado_sintetico.synthetic.jsonl": "2d1a6e51c38a135627d0a77ca7d7c525416a1d81ea112cbdb682ca7360c35755",
     "examples/septiembre_sintetico.synthetic.jsonl": "634743b3cbf54d1439f079e8ccc1eaf1d92c115e7a1e038c76e5742d5f7163a2",
-    "pyproject.toml": "38cf615e8a8fb6a056797123dab5931c96d242ee59c0782b96ab3a22cfb81fc0",
+    "pyproject.toml": "e7da075dfa32b73a86895ca789d291d7e2879ba04c4c2e7be987447a7fcbae95",
     "tests/test_dominance.py": "f4b7635fce6e544379d5ddbe2668356b049770dcef66186ffda75feaee450ddb",
     "tests/test_engineer.py": "ed13a46b2073d5f9f78734a0a670d9c2200eb08c978943a854abdbf8422d88a0",
     "tests/test_learning.py": "c650484f88e6a5ff637f64516395857035f210236a925ebaacdcd29e3d9bba77",
