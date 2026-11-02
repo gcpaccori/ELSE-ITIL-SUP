@@ -170,3 +170,25 @@ def test_hard_gate_blocks_unverified_sql_columns():
 def test_hard_gate_generic_action_not_sufficient():
     a=good();a['pasos'][0]['accion']='revisar el sistema'
     assert 'NON_SPECIFIC_ACTION_0' in evaluate_response(a)['flags']
+
+def test_resume_binding_rejects_changed_input(tmp_path):
+    h=tmp_path/'h.jsonl'; q=tmp_path/'q.jsonl'; out=tmp_path/'o.jsonl'
+    h.write_text('')
+    q.write_text(json.dumps(hold())+'\n')
+    model=Fake()
+    process_jsonl(model,str(h),str(q),str(out),expected_count=1)
+    q.write_text(json.dumps(hold(desc='Otra solicitud'))+'\n')
+    with pytest.raises(ValueError,match='RESUME_INPUT_BINDING_MISMATCH'):
+        process_jsonl(model,str(h),str(q),str(out),expected_count=1)
+    assert len(model.messages)==1
+
+def test_invalid_model_reply_gets_one_corrective_attempt():
+    class EchoThenFix:
+        def __init__(self): self.calls=0
+        def complete(self,messages):
+            self.calls+=1
+            return json.dumps({'incident':{'description':'untrusted input'}}) if self.calls==1 else json.dumps(good())
+    m=EchoThenFix()
+    r=ResolutionRunner(m,MemoryIndex([])).resolve(hold())
+    assert r['status']=='PLAN_REVIEWABLE'
+    assert r['attempts']==2 and m.calls==2
