@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "else-itil-sup"
+version = "0.9.1"
+description = "Evidence-grounded LLM IT service desk research prototype"
+requires-python = ">=3.11"
+
+[project.optional-dependencies]
+test = ["pytest>=8.0"]
+qa = ["pyodbc>=5.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

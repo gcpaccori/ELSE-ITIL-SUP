@@ -1,0 +1,308 @@
+{
+  "schema": "PUBLIC_SYNTHETIC_CATALOG_V1",
+  "public_demo_only": true,
+  "sources": [
+    {
+      "id": "ITIL.taIncidente",
+      "domain": "ITIL",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "CodigoIncidente",
+        "CodigoModulo",
+        "CodigoServicio"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "ITIL.taItemConfiguracion",
+      "domain": "CMDB",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "ITIL.taItemConfiguracionEquipo",
+      "domain": "CMDB",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "ITIL.taMantenimientoEquipo",
+      "domain": "Hardware",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "ITIL.taServidorAplicacion",
+      "domain": "Infra",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "ITIL.taIncidenteDerivacion",
+      "domain": "ITIL",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "ITIL.taServicioKPI",
+      "domain": "ITIL",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "ITIL.taServicio",
+      "domain": "ITIL",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "SEC.taUsuario",
+      "domain": "Identity",
+      "purpose": "Usuario: cuenta bloqueada (DEMO)",
+      "columns": [
+        "LoginUsuario",
+        "Estado"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "SEC.taGrupoUsuarioUsuario",
+      "domain": "Identity",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "SEC.taGrupoUsuarioModulo",
+      "domain": "Identity",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "SEC.taPerfilUsuario",
+      "domain": "Identity",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "SEC.taPerfilGrupoUsuario",
+      "domain": "Identity",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "SEC.taUsuarioBitacora",
+      "domain": "Identity",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "SEC.taUsuarioSesion",
+      "domain": "Identity",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "LoginUsuario"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "DENIED"
+    },
+    {
+      "id": "SEC.taSolicitudRecuperacionClaveSIELSE",
+      "domain": "Identity",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "ADM.taActivoFijo",
+      "domain": "Asset",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "ADM.taActivoTrabajador",
+      "domain": "Asset",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "ADM.taSolicitudSoporteInformatico",
+      "domain": "Support",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "ADM.taContratoProveedor",
+      "domain": "Continuity",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    },
+    {
+      "id": "ADM.taSolicitudAdquisicion",
+      "domain": "Procurement",
+      "purpose": "Fuente de ejemplo no verificada",
+      "columns": [
+        "SampleId",
+        "SampleStatus"
+      ],
+      "table": "DEMO_TABLE_NOT_REAL",
+      "connection_status": "SYNTHETIC_DEMO_NOT_VERIFIED",
+      "access_status": "NOT_CONNECTED"
+    }
+  ],
+  "relations": [
+    {
+      "left": "ITIL.taItemConfiguracionEquipo",
+      "right": "ITIL.taItemConfiguracion",
+      "status": "UNVERIFIED_DEMO",
+      "note": "No usar como contrato corporativo; requiere metadata autorizada."
+    },
+    {
+      "left": "ADM.taActivoTrabajador",
+      "right": "ADM.taActivoFijo",
+      "status": "UNVERIFIED_DEMO",
+      "note": "No usar como contrato corporativo; requiere metadata autorizada."
+    },
+    {
+      "left": "SEC.taGrupoUsuarioUsuario",
+      "right": "SEC.taUsuario",
+      "status": "UNVERIFIED_DEMO",
+      "note": "No usar como contrato corporativo; requiere metadata autorizada."
+    },
+    {
+      "left": "ITIL.taIncidente",
+      "right": "ITIL.taItemConfiguracion",
+      "status": "UNVERIFIED_DEMO",
+      "note": "No usar como contrato corporativo; requiere metadata autorizada."
+    },
+    {
+      "left": "ITIL.taMantenimientoEquipo",
+      "right": "ITIL.taItemConfiguracionEquipo",
+      "status": "UNVERIFIED_DEMO",
+      "note": "No usar como contrato corporativo; requiere metadata autorizada."
+    },
+    {
+      "left": "ITIL.taServidorAplicacion",
+      "right": "ITIL.taItemConfiguracion",
+      "status": "UNVERIFIED_DEMO",
+      "note": "No usar como contrato corporativo; requiere metadata autorizada."
+    },
+    {
+      "left": "ADM.taActivoFijo",
+      "right": "ITIL.taItemConfiguracionEquipo",
+      "status": "UNVERIFIED_DEMO",
+      "note": "No usar como contrato corporativo; requiere metadata autorizada."
+    },
+    {
+      "left": "ADM.taTrabajador",
+      "right": "SEC.taUsuario",
+      "status": "UNVERIFIED_DEMO",
+      "note": "No usar como contrato corporativo; requiere metadata autorizada."
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "deployment_authorized": false,
+  "expected_server": "TEST-QA",
+  "db_names": {
+    "TEST": "QA_DB"
+  },
+  "dsn_env_by_domain": {
+    "TEST": "TIC_TEST_QA_DSN"
+  },
+  "queries": {
+    "READ_CASE": {
+      "domain": "TEST",
+      "sql": "SELECT TOP (1) CaseId,Description FROM TestCases WHERE CaseId=?",
+      "required": [
+        "CaseId"
+      ],
+      "max_rows": 1,
+      "source": "TEST.Cases",
+      "scope_bindings": {
+        "CaseId": "case_id"
+      }
+    }
+  }
+}

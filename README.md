@@ -1,31 +1,44 @@
 # ELSE-ITIL-SUP — RIV (Investigación Resolutiva Verificable)
 
-**Meta:** un especialista de Soporte TIC dirigido por un LLM que investiga incidentes, recupera antecedentes y propone procedimientos concretos, con pruebas y roles condicionados. No es un bot de etiquetas ni un sistema que ejecuta cambios sin autorización.
+**Objetivo:** asistente de soporte TIC dirigido por un LLM, con recuperación histórica, consultas corporativas autorizadas y propuestas de resolución **condicionadas a evidencia y roles**. No es un bot de etiquetas ni promete resolver todos los tickets.
 
-> Estado al 2026-11-02: prototipo experimental. **0 reparaciones reales certificadas por IA**. Los resultados sintéticos y las pruebas unitarias no constituyen tasas de resolución.
+> Estado real al 2026-11-02: código experimental, sin reparaciones de tickets reales certificadas. Las baterías sintéticas y pruebas unitarias **no son** tasas de resolución. Los antecedentes reales de ELSE **NO están publicados aquí**.
 
-## Ruta de producto
+## Una sola ruta, sin ramas funcionales duplicadas
 
-- **Agente:** el LLM formula hipótesis y solicita herramientas.
-- **Memoria:** SQLite/FTS5, antecedentes con fechas, provenance y revisión independiente.
-- **Fuentes:** catálogo privado verificado, relaciones, roles y controles de acceso.
-- **Conector QA:** únicamente consultas registradas, parametrizadas, con identidad corporativa de solo lectura.
-- **Verificador:** rechaza evidencia inventada, SQL no verificable y afirmaciones de resolución sin prueba de cierre.
-- **Evaluación:** casos de 2026 con solución humana oculta; revisión independiente del diagnóstico y el procedimiento.
+1. `else_dominance/agent.py`: orquestador LLM que decide pruebas y herramientas.
+2. `else_dominance/memory.py`: almacenamiento local, FTS5 y procedencia de antecedentes, **solo dentro del perímetro autorizado**.
+3. `else_dominance/sources.py`: descubrimiento de fuentes/relaciones a partir de catálogo validado externo.
+4. `else_dominance/qa_adapter.py`: conector de queries **registradas en configuración privada**; no SQL libre del modelo.
+5. `else_dominance/engineer.py`: verificador y expedientes con responsables condicionados, sin ejecutar cambios.
+6. `else_dominance/learning.py`: revisión y promoción de evidencias independientes.
 
-## Decisión: qué no integrar
+`resolution_batch.py` se conserva **solo como harness de evaluación retrospectiva** (no es un segundo motor de producción). `batch_2026.py` orquesta el núcleo LLM con holdout; nunca expone la solución del caso al modelo.
 
-No se llevan al runtime los predictores v0.1–v0.4, las 50 reglas de respuesta fija, los motores duplicados v0.5/v0.6, la orquestación multiagente permanente ni el fine-tuning sobre soluciones no adjudicadas. Se conservan solamente como historia de investigación, **fuera del ejecutable**.
-
-La rama pública debe contener **solo código depurado y ejemplos ficticios**. Nunca expedientes, soluciones históricas reales, credenciales, DNS/hosts internos ni el catálogo completo de bases de ELSE. La configuración institucional se mantiene fuera de Git.
-
-## Verificación
+## Ejecutar pruebas
 
 ```bash
-python -m pip install -e '.[test]'
+python -m pip install pytest
 python -m pytest -q
 ```
 
-Un test aprobado acredita funcionalidad del código, **no** resolución de incidentes reales.
+Para integración operativa, se exige un catálogo real de fuentes y un endpoint de inferencia aprobado, ambos privados:
 
-Ver documentación de arquitectura, seguridad y fases de aceptación junto con el código consolidado.
+```bash
+export TIC_CATALOG_PATH=/secure/qa/catalog_verified.json
+export TIC_LLM_BASE_URL=http://127.0.0.1:8000/v1
+export TIC_LLM_MODEL=approved-local-llm
+python -m else_dominance.operational_cli --db /secure/qa/knowledge.sqlite stats
+```
+
+El catálogo `data/source_catalog.json` es **ficticio**: solo sirve para tests y ejemplos. Reemplazarlo por evidencia corporativa únicamente en una ruta privada externa. El adaptador QA lee `TIC_PRIVATE_QA_CONFIG` y DSN privados. No subas la configuración ni los tickets.
+
+## Qué NO hacemos
+
+- No incluimos los motores predictivos v0.1–v0.4 ni 50 procedimientos codificados como `if/else`.
+- No usamos una puntuación sintética como prueba de resolución real.
+- No damos permisos de administrador ni modificamos sistemas sin autorización.
+- No publicamos datos personales, incidentes, soluciones humanas ni esquemas internos.
+- No hacemos fine-tuning hasta disponer de expedientes revisados y un benchmark ciego de aceptación.
+
+Ver [decisión de arquitectura](docs/ADR-0001-FOCO.md), [ruta de entrega](docs/ROADMAP.md) y [seguridad](SECURITY.md).
