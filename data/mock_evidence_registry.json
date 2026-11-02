@@ -1,0 +1,6 @@
+{
+  "E1": "MOCK.auth: token válido",
+  "E2": "MOCK.authorizations: falta permiso de módulo",
+  "E3": "MOCK.module: otros usuarios autorizados funcionan",
+  "E4": "MOCK.helpdesk: no hay aprobación en este registro simulado"
+}
