@@ -42,3 +42,5 @@ El catálogo `data/source_catalog.json` es **ficticio**: solo sirve para tests y
 - No hacemos fine-tuning hasta disponer de expedientes revisados y un benchmark ciego de aceptación.
 
 Ver [decisión de arquitectura](docs/ADR-0001-FOCO.md), [ruta de entrega](docs/ROADMAP.md) y [seguridad](SECURITY.md).
+
+See [QA ITIL 2026 retrieval and live-support status](docs/OPERACION_ITIL_20261103_RECUPERACION_QA.md) for the November 3 operational evidence.
