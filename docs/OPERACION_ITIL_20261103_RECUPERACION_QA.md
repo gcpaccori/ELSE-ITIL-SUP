@@ -49,15 +49,24 @@ El último indicador **no demuestra que haya tres credenciales reales**; es una 
 
 - `elsecluster5`: Qwen 4B `127.0.0.1:18781`, Qwen 9B `127.0.0.1:18782`, mesa de ayuda `127.0.0.1:18881/health=READY`; verificaciones previas.
 - Se comprobó `ssh -o BatchMode=yes u23u@elsecluster5 hostname` desde `ELSE62`: conexión básica **PASS**.
-- Un intento de crear un túnel `localhost` desde `ELSE62` hacia el puerto local del modelo se quedó sin respuesta dentro del tiempo del conector; llamadas posteriores a `ELSE62` también agotaron el tiempo de cola. **No se obtuvo una inferencia comprobable de septiembre** en esa prueba.
-- Por tanto: **545/545 solicitudes individuales recuperadas en QA; 0/545 inferencias LLM del mes confirmadas; 0 reparaciones certificadas.**
+- Un intento inicial de crear un túnel persistente se quedó sin respuesta. Se recuperó el agente y se usó **SSH por solicitud**, con datos UTF-8 codificados en base64 por la entrada estándar hacia `curl` ejecutado en `elsecluster5`. El endpoint Qwen 9B local respondió correctamente, sin exponer el puerto a la red.
+- Se seleccionaron **cinco solicitudes individuales, reales y distintas de septiembre**, de perfiles técnicos de acceso, equipos, red y proceso comercial. Se filtraron coincidencias obvias de secretos antes del envío. **No** se proporcionó al modelo la solución humana de 2026. Las respuestas permanecen privadas en `ELSE62`, en ficheros `itil_sep_*.private_result.json`.
+- **5/545 inferencias individuales reales confirmadas**: todas devolvieron JSON con 3 hipótesis/pruebas y/o 3 acciones condicionadas según la plantilla; la primera muestra fue revisada con controles estructurales equivalentes. Las cuatro restantes se guardaron explícitamente como `PLAN_REVIEWABLE` por comprobación básica de campos, no certificación funcional. Cinco referencias de caso **únicas**, cero flags de estructura en las comprobaciones aplicadas, `resuelto=false` y `ejecutado=false` en las cinco.
+- **Resultado global:** 545/545 solicitudes recuperadas en QA; **5/545 analizadas por Qwen 9B**; **0 reparaciones ejecutadas o certificadas**. El resto del mes está pendiente. Estos cinco planes requieren revisión técnica y evidencia adicional para considerarse atenciones cerradas.
 
 ## Operación pendiente, sin desarrollo de software
 
-1. Restablecer un canal de ejecución confiable entre el entorno QA que conserva las solicitudes y el modelo on-premises, con tratamiento de datos autorizado, sin enviar material crudo a GitHub.
+1. Utilizar el canal SSH privado verificado por solicitud (sin túnel persistente), con tratamiento de datos autorizado y sin publicar el contenido corporativo.
 2. Revisar la anonimización, especialmente las tres coincidencias de posibles secretos y los identificadores libres.
-3. Presentar cada solicitud al especialista sin exponerle la solución histórica, y conservar una respuesta privada por `case_ref`.
+3. Ampliar de los cinco pilotos a las solicitudes restantes, sin exponer al modelo la solución histórica, y conservar una respuesta privada por `case_ref`.
 4. Revisar diagnósticos, actuaciones y pruebas de cierre; reflejar explícitamente lo pendiente de autorización o de verificación.
 5. Publicar solo métricas y recibos agregados, no descripciones ni soluciones corporativas.
 
 **No confundir recuperación de expedientes, triage por palabras clave o disponibilidad de Qwen con atención o reparación finalizada.** Los expedientes individuales permanecen privados en QA.
+
+## Identidad de los archivos exportados (sin revelar contenido)
+
+- `cases_2025_redacted.jsonl`: SHA-256 `b0ff2a2e718cf3628de167ad556597e6285e0898ed46f267016cb0284c59ba87`.
+- `holdout_requests_2026_redacted.jsonl`: SHA-256 `f204854798e1a7bfbfd213c6c30b38dfe7cce958d320755cda156f29739c3816`.
+- Las huellas se calcularon sobre los archivos **privados** en ELSE62, después de la exportación. No dan acceso a sus textos y permiten identificar exactamente la cohorte.
+- **No se subió ninguna solicitud, solución, token ni respuesta privada al repositorio.**
