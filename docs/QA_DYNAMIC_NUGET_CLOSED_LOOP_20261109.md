@@ -109,3 +109,15 @@ Para ello hacen falta Hands específicos de lectura autorizada.
 La retroalimentación humana de la Preview PR #13 permanece pendiente.
 Ninguno de estos resultados autoriza aprender o cerrar tickets sin prueba
 funcional y revisión técnica.
+
+## Matriz de pruebas / CI
+
+Las pruebas puras de ELSE-ITIL-SUP funcionan en GitHub Actions sin instalar
+ELSE CORE. Las 13 parametrizaciones que ejercitan el Hand real se omiten
+en ese runner cuando falta la dependencia externa PR #360; **no se sustituyen
+por mocks de O5 que pudieran dar un PASS ficticio**.
+
+En el entorno QA autorizado, con ambos checkouts exactamente fijados,
+se ejecutaron todas las pruebas (180 PASS). La evidencia más fuerte siguen
+siendo las tres consultas Windows NuGet reales y el re-verificador
+O5/O13/O15 con tres negativos de pre-ejecución.

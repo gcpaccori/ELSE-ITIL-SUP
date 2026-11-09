@@ -31,6 +31,10 @@ def tool(sha):
 
 
 def fixture_owner(tmp_path, **changes):
+    # ELSE CORE PR #360 is a separate checkout. Hosted GitHub CI checks
+    # pure ITIL functionality; native O5 integration runs on the QA cluster.
+    pytest.importorskip("else_core.itil_nuget_o5_hand",
+                        reason="Native O5 integration requires pinned ELSE CORE PR #360")
     from else_core.itil_nuget_o5_hand import (
         AuthorizedNugetReceipt,QA_SCOPE,TRANSFER_SCHEMA)
     c=sample_case()
@@ -153,3 +157,45 @@ def test_windows_tool_shape_rejects_sql_and_host():
     ):
         with pytest.raises(ValueError):
             validate_model_tool(bad,expected)
+
+def test_windows_catalog_only_transports_no_gold(tmp_path):
+    p=Path(__file__).resolve().parents[1]/"qa"
+    sys.path.insert(0,str(p))
+    from qa_dynamic_nuget_windows import read_allowlist, case_for_cluster
+    rows=[]
+    for i in range(545):
+        ident=f"ITILTEST{i:04d}"
+        h=sha256(ident.encode()).hexdigest()
+        rows.append({"case_ref":ident,"case_sha256":h,
+                     "opened_at":"2026-09-04T10:00:00",
+                     "service_code":"1","module_code":"0100100000000",
+                     "classification_code":"01",
+                     "description_redacted":"Synthetic description for deterministic test."})
+    file=tmp_path/"allowlist.jsonl"
+    file.write_bytes(b"".join(json.dumps(r).encode()+b"\n" for r in rows))
+    loaded=read_allowlist(file)
+    assert len(loaded)==545
+    clean=case_for_cluster(rows[0])
+    assert clean["historical_solution"]=="WITHHELD"
+    assert "case_ref" not in clean
+    assert "historical_solution_withheld" not in clean
+    assert clean["model_may_execute_sql"] is False
+
+
+def test_windows_allowlist_rejects_identity_drift(tmp_path):
+    p=Path(__file__).resolve().parents[1]/"qa"
+    sys.path.insert(0,str(p))
+    from qa_dynamic_nuget_windows import read_allowlist
+    rows=[]
+    for i in range(545):
+        ident=f"ITILTEST{i:04d}"
+        rows.append({"case_ref":ident,"case_sha256":sha256(ident.encode()).hexdigest(),
+                     "opened_at":"2026-09-04T10:00:00",
+                     "service_code":"1","module_code":"0100100000000",
+                     "classification_code":"01",
+                     "description_redacted":"Synthetic description with enough length."})
+    rows[123]["case_sha256"]="0"*64
+    file=tmp_path/"bad_allowlist.jsonl"
+    file.write_bytes(b"".join(json.dumps(r).encode()+b"\n" for r in rows))
+    with pytest.raises(ValueError,match="ALLOWLIST_ID_SHA"):
+        read_allowlist(file)
