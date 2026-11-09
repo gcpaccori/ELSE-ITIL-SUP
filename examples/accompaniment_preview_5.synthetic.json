@@ -1,0 +1,89 @@
+{
+  "schema": "else.itil.accompaniment.preview.v1",
+  "description": "Five synthetic end-to-end cases for the existing ELSE-ITIL support service; human feedback is separate and not predetermined.",
+  "scenarios": [
+    {
+      "scenario": "Acceso SIELSE 403",
+      "goal": "Diferenciar autorización, sesión y permisos sin afirmar la causa.",
+      "ticket": {
+        "case_ref": "PREVIEW-20261109-SIELSE403",
+        "input_scope": "synthetic",
+        "service": "SIELSE acceso web",
+        "description": "Usuario sintético inicia sesión correctamente en el portal SIELSE; al abrir el módulo comercial recibe HTTP 403. El acceso al menú general funciona. Se requiere acompañamiento para distinguir problema de sesión, autorización de módulo y configuración de perfil sin cambiar permisos.",
+        "evidence": [
+          {
+            "ref": "E1",
+            "observation": "Simulación: captura de navegador muestra respuesta HTTP 403 al cargar módulo comercial."
+          },
+          {
+            "ref": "E2",
+            "observation": "Simulación: mismo usuario puede cargar el tablero principal en sesión vigente."
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "Cola de impresión atascada",
+      "goal": "Aislar cola de impresión, controlador y conectividad con pasos no destructivos.",
+      "ticket": {
+        "case_ref": "PREVIEW-20261109-PRINTER",
+        "input_scope": "synthetic",
+        "service": "Soporte de impresión",
+        "description": "Impresora compartida visible en la red y encendida, pero los documentos de un puesto de trabajo quedan en cola como pendiente. Otras estaciones aún no fueron verificadas. El técnico solicita diagnóstico gradual y criterio para derivación sin borrar trabajos automáticamente.",
+        "evidence": [
+          {
+            "ref": "E1",
+            "observation": "Simulación: impresora responde a comprobación de conectividad y muestra estado disponible."
+          },
+          {
+            "ref": "E2",
+            "observation": "Simulación: siete documentos quedan con estado pendiente en cola del equipo solicitante."
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "Pedido SAP sin confirmación",
+      "goal": "No inventar identificadores de pedido, ni vínculos OT, ni una causa SAP confirmada.",
+      "ticket": {
+        "case_ref": "PREVIEW-20261109-SAPPEND",
+        "input_scope": "synthetic",
+        "service": "Pedidos de almacén e integración SAP",
+        "description": "Un operador de almacén informa que registró una solicitud y que no observa su número SAP. No adjunta el número de pedido de almacén ni una orden de trabajo verificable. Solicita identificar qué identificadores y comprobaciones de lectura debe obtener primero y cuándo corresponde escalar a integración.",
+        "evidence": []
+      }
+    },
+    {
+      "scenario": "DNS intermitente en oficina",
+      "goal": "Distinguir resolución DNS, enlace y servicio afectado sin suponer una caída completa.",
+      "ticket": {
+        "case_ref": "PREVIEW-20261109-DNS",
+        "input_scope": "synthetic",
+        "service": "Conectividad y DNS",
+        "description": "En una oficina varias aplicaciones por nombre de dominio fallan intermitentemente, mientras una dirección IP de prueba local sigue respondiendo. La incidencia empezó esta mañana y no existe todavía comprobación desde otra VLAN. Se pide diagnóstico diferencial y verificación independiente.",
+        "evidence": [
+          {
+            "ref": "E1",
+            "observation": "Simulación: conexión IP local responde; resolución del nombre de la intranet falla en una estación."
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "Descuadre comercial y escalamiento",
+      "goal": "Investigar discrepancia sin proponer modificación contable o SQL; identificar responsables de validación.",
+      "ticket": {
+        "case_ref": "PREVIEW-20261109-BILLING",
+        "input_scope": "synthetic",
+        "service": "SIELSE consulta comercial",
+        "description": "Un analista reporta diferencia entre el importe mostrado por la consulta comercial y el importe de un comprobante de prueba. Solicita corregir directamente el saldo si existe diferencia, pero no adjunta identificadores verificables ni autorización. Se requiere acompañamiento que solicite evidencia y escale cualquier ajuste a responsables autorizados.",
+        "evidence": [
+          {
+            "ref": "E1",
+            "observation": "Simulación: dos pantallas de prueba muestran importes distintos; no se ha probado fecha de corte ni criterios de cálculo."
+          }
+        ]
+      }
+    }
+  ]
+}
