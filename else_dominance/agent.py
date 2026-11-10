@@ -76,7 +76,7 @@ class InvestigationAgent:
     def investigate(self,incident:dict,*,now:str,session_id:str|None=None)->dict:
         datetime.fromisoformat(now)
         sid=session_id or 'tic-'+uuid.uuid4().hex
-        context={key:incident.get(key,'') for key in ('case_ref','description','service_code','module_code','classification_code','system_version','as_of')}
+        context={key:incident.get(key,'') for key in ('case_ref','case_sha256','description','service_code','module_code','classification_code','system_version','as_of')}
         context['as_of']=incident.get('as_of') or '2026-01-01T00:00:00'
         self.memory.start_session(incident,sid,now)
         messages=[{'role':'system','content':SYSTEM},{'role':'user','content':json.dumps({'incident':context,'available_tools':self.tools.descriptions,'instructions':'Investiga mediante herramientas antes de finalizar. Si no hay evidencia, ofrece pruebas concretas.'},ensure_ascii=False)}]
@@ -116,7 +116,14 @@ class InvestigationAgent:
     def _validate(answer:dict,evidence:dict)->dict:
         # No model-generated evidence IDs may be invented. One ref is a pointer to
         # a tool receipt, NOT proof that the content establishes a cause.
-        valid={k for k,v in evidence.items() if not v['result'].get('error') and v['result'].get('status')!='BLOCKED'}
+        # A queued read or a synthetic source catalog is NOT evidence of
+        # current corporate state. Only actual verified read receipts and
+        # separately named historical precedents may ground a live claim.
+        valid={k for k,v in evidence.items()
+               if v['name']=='query_live'
+               and v['result'].get('status')=='READ_VERIFIED'
+               and v['result'].get('provenance_verified') is True
+               and v['result'].get('repair_certified') is False}
         valid.update('CASE:'+c['case_ref'] for v in evidence.values() for c in v['result'].get('cases',[]))
         invalid=[]; unsupported=[]
         for section in ('hypotheses','proposed_steps'):
