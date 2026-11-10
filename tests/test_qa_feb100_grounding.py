@@ -162,3 +162,26 @@ def test_no_repair_attempt_after_two_invalid_outputs(tmp_path):
     assert result["proposal"]=={}
     assert result["repair_certified"] is False
     assert result["o5_o13_o15_verified"] is True
+
+@pytest.mark.parametrize("name", [
+    "SEC.[taUsuario]", "[SEC].[taUsuario]", '"SEC"."taUsuario"',
+    "dbo.[taIncidente]", "taArqueoGuardar", "ADM.taActivoTrabajador",
+])
+def test_bracketed_quoted_bare_source_bypass_is_denied(name):
+    p=grounded_plan()
+    p["pasos"][0]["accion"]="Consultar "+name+" como si fuera SQL real"
+    gate=provenance(p)
+    assert gate["accepted"] is False
+
+
+def test_prose_after_itil_period_is_not_sql_name():
+    p=grounded_plan()
+    p["diagnostico"]="ITIL. El expediente existe pero la causa es una hipótesis."
+    assert provenance(p)["accepted"]
+
+
+@pytest.mark.parametrize("key",["faltantes","cierre"])
+def test_missing_evidence_or_closure_list_must_reject(key):
+    p=grounded_plan()
+    p[key]=[]
+    assert not provenance(p)["accepted"]

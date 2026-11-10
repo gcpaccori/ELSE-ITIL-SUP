@@ -13,20 +13,37 @@ import re
 
 from .support_desk import _quality
 
-SCHEMA = "else.itil.qa.feb100.provenance-gate.v2"
+SCHEMA = "else.itil.qa.feb100.provenance-gate.v2.1"
 OBSERVED = frozenset({"ITIL.taIncidente"})
 REFS = frozenset({"E1", "E2"})
 # Includes the physical dbo qualifier, which is NOT an interchangeable
 # canonical entity name without a database-scoped proof.
+SQL_SCHEMA = r"(?:ITIL|SEC|ADM|COM|DIS|DIST|DBO)"
+IDENT = r"[A-Za-z][A-Za-z0-9_]*"
 TABLE = re.compile(
-    r"(?<![A-Za-z0-9_])(?:ITIL|SEC|ADM|COM|DIS|DIST|DBO)"
-    r"\s*\.\s*[A-Za-z][A-Za-z0-9_]*", re.I)
+    rf'(?<![A-Za-z0-9_])(?:\[{SQL_SCHEMA}\]|"{SQL_SCHEMA}"|{SQL_SCHEMA})'
+    rf'\s*\.(?:\s*\[{IDENT}\]|\s*"{IDENT}"|{IDENT})', re.I)
+BARE = re.compile(r'(?<![A-Za-z0-9_])(?:ta|tb|tbl)[A-Z][A-Za-z0-9_]{2,}\b')
+
+
+def model_string_values(value) -> str:
+    """Analyze actual model string values, never JSON-escaped substitutes."""
+    parts=[]
+    def walk(item):
+        if isinstance(item,str):
+            parts.append(item)
+        elif isinstance(item,dict):
+            for child in item.values():walk(child)
+        elif isinstance(item,list):
+            for child in item:walk(child)
+    walk(value)
+    return "\n".join(parts)
 
 
 def normalized_mentions(plan: dict) -> list[str]:
-    raw = json.dumps(plan, ensure_ascii=False, sort_keys=True)
+    raw = model_string_values(plan)
     return sorted({
-        re.sub(r"\s+", "", match.group()).upper()
+        re.sub(r'[\s\[\]"]+', "", match.group()).upper()
         for match in TABLE.finditer(raw)
     })
 
@@ -56,6 +73,14 @@ def evidence_provenance_gate(plan: dict, *, native_o5_verified: bool,
                      if x not in {v.upper() for v in observed})
     if unknown:
         flags.append("UNOBSERVED_SQL_TABLE_MENTION")
+    # A source name may be written without its SQL schema, including in
+    # diagnostics, next steps and missing-evidence prose. Never treat a
+    # bare object as a verified query merely because it is in a catalog.
+    raw_text=model_string_values(plan)
+    bare_unknown=sorted({m.group() for m in BARE.finditer(raw_text)
+                         if m.group().lower()!="taincidente"})
+    if bare_unknown:
+        flags.append("UNOBSERVED_SQL_OBJECT_MENTION")
     undeclared = sorted(x for x in mentioned if x not in {
         v.upper() for v in declared})
     if undeclared:
@@ -75,11 +100,18 @@ def evidence_provenance_gate(plan: dict, *, native_o5_verified: bool,
         flags.append("NATIVE_SOURCE_RECEIPT_NOT_BOUND")
     if plan.get("ejecutado") is not False or plan.get("confirmado") is not False:
         flags.append("FALSE_EXECUTION_OR_CONFIRMATION")
+    for field,code in (("faltantes","UNRESOLVED_EVIDENCE_MUST_BE_STATED"),
+                       ("cierre","VERIFIABLE_CLOSURE_TEST_REQUIRED")):
+        entries=plan.get(field)
+        if type(entries) is not list or not entries or any(
+                type(x) is not str or len(x.strip())<15 for x in entries):
+            flags.append(code)
     return {
         "schema": SCHEMA, "accepted": not bool(flags),
         "flags": flags,
         "observed_sources": sorted(observed),
         "unobserved_mentions": unknown,
+        "unobserved_bare_sql_objects": bare_unknown,
         "undeclared_mentions": undeclared,
         "receipt_bound": receipt_bound,
     }
@@ -96,6 +128,8 @@ def grounded_system_policy() -> str:
         "evidence_refs como lista NO VACÍA de E1 y/o E2. "
         "NO menciones ningún nombre SQL esquema.tabla distinto de "
         "ITIL.taIncidente EN NINGÚN CAMPO, tampoco en faltantes ni pasos. "
+        "Tampoco menciones nombres SQL aislados no consultados, como "
+        "taUsuario o taArqueoGuardar, aunque pertenezcan al catálogo. "
         "Para una verificación adicional aún no realizada, describe "
         "la comprobación funcional requerida en lenguaje natural, "
         "sin inventar tabla, columna, consulta, permisos, rol, "
@@ -144,7 +178,8 @@ def missing_source_repair_instruction(quality: dict) -> str:
         "Usa fuentes EXACTAMENTE [\"ITIL.taIncidente\"] y "
         "evidence_refs no vacío, solo E1/E2. "
         "Describe las verificaciones pendientes en lenguaje natural, "
-        "sin nombres SQL hipotéticos. Nunca elimines una prueba faltante "
+        "sin nombres SQL hipotéticos ni nombres aislados taXXXX. "
+        "Nunca elimines una prueba faltante "
         "ni inventes que se realizó; usa hipótesis y condiciones. "
         "Reescribe TODO el objeto JSON con sus pasos completos, "
         "ejecutado:false y confirmado:false."
