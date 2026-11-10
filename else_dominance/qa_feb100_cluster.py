@@ -22,6 +22,9 @@ from .qa_feb100_native import (
 from .qa_feb100_o5_tool_runtime import O5QaToolAdapter, QUERY_ID, TOOL_NAME
 from .resolution_batch import KNOWN_SOURCES
 from .support_desk import SYSTEM, _quality
+from .qa_evidence_grounding import (
+    OBSERVED, grounded_system_policy, evaluate_grounded_plan,
+    missing_source_repair_instruction)
 
 SCHEMA = "else.itil.qa.model-triggered-nuget-investigation.v1"
 HEX = re.compile(r"[0-9a-f]{64}\Z")
@@ -127,7 +130,7 @@ def finish_fresh_qa_case(*, owner, case:dict, model,
         "datos, pero un estado administrativo ITIL no prueba la causa raíz. "
         "Pide evidencia adicional necesaria; no inventes tablas, perfiles, "
         "responsables oficiales ni reparaciones."
-    )
+    ) + grounded_system_policy()
     payload={
         "case_sha256_prefix":owner.case_sha256[:16],
         "incident_text_redacted_unverified":clean["description"],
@@ -136,31 +139,69 @@ def finish_fresh_qa_case(*, owner, case:dict, model,
         "verified_sql_metadata":context,
         "evidence":evidence,
         "historical_solution":"WITHHELD",
-        "allowed_source_names":sorted(KNOWN_SOURCES),
+        # The known catalog lists possibilities but is NOT proof of queries.
+        # Only the native O5-observed ITIL source is shown to this inference.
+        "allowed_source_names":sorted(OBSERVED),
+        "unavailable_other_source_catalog":True,
         "required":"Diagnóstico diferencial actualizado y plan condicional "
-                   "en JSON. Tres pasos como máximo, sin afirmar cierre."}
-    try:
-        response=model.complete([
-            {"role":"system","content":sys},
-            {"role":"user","content":json.dumps(payload,ensure_ascii=False)}])
-        plan=parse_strict(response.encode("utf-8"))
-        quality=_quality(plan,evidence)
-        missing_tables=table_mentions_in_proposal(plan)
-        if missing_tables:
-            quality={**quality,"accepted":False,
-                     "status":"REJECT",
-                     "safety_flags":list(quality["safety_flags"])+[
-                        "UNBOUND_SQL_TABLE_REFERENCES"],
-                     "unbound_table_mentions":missing_tables}
-        accepted=(quality.get("accepted") is True and
-                  plan.get("ejecutado") is False and
-                  plan.get("confirmado") is False)
-    except (ValueError,TypeError,KeyError,AttributeError):
-        plan={}
-        quality={"accepted":False,"status":"REJECT",
-                 "schema_flags":["MODEL_RESPONSE_NOT_ACCEPTED"],
-                 "safety_flags":[],"review_flags":[]}
-        accepted=False
+                   "en JSON. Tres pasos como máximo, sin afirmar cierre. "
+                   "fuentes=[ITIL.taIncidente]; evidence_refs=[E1,E2]; "
+                   "No citar otras tablas SQL ni declarar consultas no realizadas."}
+    attempts=0
+    first_reject_flags=[]
+    plan={}
+    quality={
+        "accepted":False,"status":"REJECT",
+        "schema_flags":["NO_MODEL_RESPONSE"],
+        "safety_flags":[],"review_flags":[]}
+    accepted=False
+    messages=[
+        {"role":"system","content":sys},
+        {"role":"user","content":json.dumps(payload,ensure_ascii=False)},
+    ]
+    for attempt in (1,2):
+        attempts=attempt
+        try:
+            response=model.complete(messages)
+            candidate=parse_strict(response.encode("utf-8"))
+            gate=evaluate_grounded_plan(
+                candidate,evidence=evidence,
+                source_receipt_sha256=owner.pinned_sha256)
+            # The old table scan remains as a separate defensive check
+            # and must never be made weaker by the new policy.
+            missing_tables=table_mentions_in_proposal(candidate)
+            if missing_tables:
+                gate={**gate,"accepted":False,"status":"REJECT",
+                      "safety_flags":sorted(set(gate["safety_flags"]+
+                          ["UNBOUND_SQL_TABLE_REFERENCES"])),
+                      "unbound_table_mentions":missing_tables}
+            accepted=(gate["accepted"] is True and
+                      candidate.get("ejecutado") is False and
+                      candidate.get("confirmado") is False)
+            quality=gate
+            if accepted:
+                plan=candidate
+                break
+            if attempt==1:
+                first_reject_flags=sorted(set(
+                    gate.get("schema_flags",[])+
+                    gate.get("safety_flags",[])))
+                # No posthoc source patching. The MODEL must regenerate
+                # and the same full independent gate is applied again.
+                messages.append({"role":"assistant","content":response[:5000]})
+                messages.append({"role":"user","content":
+                    missing_source_repair_instruction(gate)})
+        except Exception as error:
+            quality={
+                "accepted":False,"status":"REJECT",
+                "schema_flags":["MODEL_RESPONSE_NOT_ACCEPTED"],
+                "safety_flags":[],"review_flags":[],
+                "error_type":type(error).__name__}
+            if attempt==1:
+                first_reject_flags=["MODEL_RESPONSE_NOT_ACCEPTED"]
+                messages.append({"role":"user","content":
+                    missing_source_repair_instruction(quality)})
+            continue
 
     return {
         "schema":SCHEMA,
@@ -177,6 +218,10 @@ def finish_fresh_qa_case(*, owner, case:dict, model,
         "qa_sql_read_only":True,
         "model_had_verified_metadata_before_final":True,
         "quality":quality,
+        "grounding_policy":"else.itil.qa.feb100.provenance-gate.v2",
+        "model_attempts":attempts,
+        "first_attempt_flags":first_reject_flags,
+        "observed_sources":sorted(OBSERVED),
         "status":quality.get("status","NEEDS_HUMAN_TRIAGE")
                  if accepted else "NEEDS_HUMAN_TRIAGE",
         "proposal":plan if accepted else {},
