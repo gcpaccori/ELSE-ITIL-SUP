@@ -22,6 +22,7 @@ from .qa_native_runtime import (
 from .qa_o5_tool_runtime import O5QaToolAdapter, QUERY_ID, TOOL_NAME
 from .resolution_batch import KNOWN_SOURCES
 from .support_desk import SYSTEM, _quality
+from .pareto_evidence import route_case
 
 SCHEMA = "else.itil.qa.model-triggered-nuget-investigation.v1"
 HEX = re.compile(r"[0-9a-f]{64}\Z")
@@ -106,6 +107,13 @@ def finish_fresh_qa_case(*, owner, case:dict, model,
             "O5_O13_O15_REQUIRED")
     raw,proof=owner.read_verified()
     context=source_context(proof,clean)
+    # Only the native O5 receipt attests ITIL metadata; it does not
+    # automatically satisfy a commercial/OT, SAP, IAM or application Hand.
+    pareto=route_case(
+        case_sha256=owner.case_sha256,
+        service_code=clean["service_code"],
+        description=clean["description"],
+        verified_receipt_categories=frozenset({"ITIL_CASE_EXACT"}))
     # Two distinct evidence layers: E1 primary immutable case receipt; E2
     # exact metadata bound to that sealed source, not proof of functional repair.
     evidence=[
@@ -152,6 +160,11 @@ def finish_fresh_qa_case(*, owner, case:dict, model,
                      "safety_flags":list(quality["safety_flags"])+[
                         "UNBOUND_SQL_TABLE_REFERENCES"],
                      "unbound_table_mentions":missing_tables}
+        if pareto.missing_receipts:
+            quality={**quality,"accepted":False,"status":"REJECT",
+                     "review_flags":list(quality.get("review_flags",[]))+[
+                         "DOMAIN_EVIDENCE_REQUIRED_"+pareto.lane],
+                     "missing_verified_receipts":list(pareto.missing_receipts)}
         accepted=(quality.get("accepted") is True and
                   plan.get("ejecutado") is False and
                   plan.get("confirmado") is False)
@@ -176,6 +189,7 @@ def finish_fresh_qa_case(*, owner, case:dict, model,
         "independently_reinspected_metadata":context,
         "qa_sql_read_only":True,
         "model_had_verified_metadata_before_final":True,
+        "pareto_evidence_route":pareto.public(),
         "quality":quality,
         "status":quality.get("status","NEEDS_HUMAN_TRIAGE")
                  if accepted else "NEEDS_HUMAN_TRIAGE",

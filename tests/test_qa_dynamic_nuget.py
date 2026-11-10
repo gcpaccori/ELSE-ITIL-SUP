@@ -76,7 +76,13 @@ def test_live_receipt_core_guardian_and_second_turn(tmp_path):
     assert result["o5_o13_o15_verified"] is True
     assert result["model_had_verified_metadata_before_final"] is True
     assert result["independently_reinspected_metadata"]["ticket_status_code"]=="03"
-    assert result["quality"]["accepted"] is True
+    # January Pareto gate intentionally refuses to treat an ITIL-only
+    # receipt as proof of the effective permissions alleged by this case.
+    assert result["quality"]["accepted"] is False
+    assert result["status"]=="NEEDS_HUMAN_TRIAGE"
+    assert result["pareto_evidence_route"]["lane"]=="ACCESS_PERMISSIONS"
+    assert result["pareto_evidence_route"]["missing_receipts"]==[
+        "SEC_EFFECTIVE_PERMISSION"]
     assert result["repair_certified"] is False
     assert model.calls==1
 
@@ -199,3 +205,27 @@ def test_windows_allowlist_rejects_identity_drift(tmp_path):
     file.write_bytes(b"".join(json.dumps(r).encode()+b"\n" for r in rows))
     with pytest.raises(ValueError,match="ALLOWLIST_ID_SHA"):
         read_allowlist(file)
+
+
+def test_itil_only_generic_case_can_remain_reviewable(tmp_path):
+    owner,c=fixture_owner(tmp_path)
+    c["description"]="Incidencia administrativa sin detalle de dominio especializado."
+    model=OneResponseModel(good_plan())
+    result=finish_fresh_qa_case(owner=owner,case=c,model=model,
+                                tool_request=tool(owner.case_sha256))
+    assert result["pareto_evidence_route"]["lane"]=="ITIL_TRIAGE"
+    assert result["pareto_evidence_route"]["missing_receipts"]==[]
+    assert result["quality"]["accepted"] is True
+    assert result["repair_certified"] is False
+
+
+def test_commercial_case_no_longer_claims_ITIL_metadata_is_domain_proof(tmp_path):
+    owner,c=fixture_owner(tmp_path)
+    c["description"]="Reclamo por lectura del medidor del suministro, requiere verificar orden de trabajo comercial."
+    model=OneResponseModel(good_plan())
+    result=finish_fresh_qa_case(owner=owner,case=c,model=model,
+                                tool_request=tool(owner.case_sha256))
+    assert result["pareto_evidence_route"]["lane"]=="COMMERCIAL_OT"
+    assert "COMMERCIAL_OT_EXACT" in result["quality"]["missing_verified_receipts"]
+    assert result["quality"]["accepted"] is False
+    assert result["proposal"]=={}
