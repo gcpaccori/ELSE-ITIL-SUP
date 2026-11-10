@@ -18,6 +18,7 @@ from .qa_dispatch_queue import QaDispatchQueue, SCHEMA as QUEUE_SCHEMA
 SCHEMA="else.itil.core-evidence-capability.v1"
 SUPPORTED_GOALS=frozenset({
     "ITIL_CASE_EXISTS","ITIL_SERVICE","ITIL_MODULE",
+    "ITIL_CLASSIFICATION","ITIL_ORIGIN","ITIL_TICKET_STATUS",
     "COMMERCIAL_STATE","SAP_ORDER_RESPONSE",
     "EFFECTIVE_PERMISSIONS","APP_RUNTIME_STATE",
     "PRECEDENT_PROCEDURE",
@@ -109,9 +110,10 @@ class ParetoInvestigationCore:
         # dispatcher: it performs a fresh per-ticket Sep NuGet SELECT and
         # requires independent O5/O13/O15 receipt verification.
         actual=ExecutableHand(
-            capability_id="itil.qa.nuget.exact.read.v1",
+            capability_id=self.queue.profile["hand_id"],
             observations=frozenset({"ITIL_CASE_EXISTS","ITIL_SERVICE",
-                                    "ITIL_MODULE"}),
+                                    "ITIL_MODULE","ITIL_CLASSIFICATION",
+                                    "ITIL_ORIGIN","ITIL_TICKET_STATUS"}),
             cost=1,
             submit=self.queue.submit)
         self.hands=(actual,)+extra_hands
@@ -152,7 +154,7 @@ class ParetoInvestigationCore:
             "job_id":job_id,
             "state":job["state"],
             "case_sha_prefix":job["case_sha_prefix"],
-            "real_hand":"itil.qa.nuget.exact.read.v1",
+            "real_hand":self.queue.profile["hand_id"],
             "root_cause_certified":False,
             "repair_certified":False,
             "human_review_required":True,
@@ -169,6 +171,7 @@ class ParetoInvestigationCore:
                 "diagnosis_status":evidence["diagnosis_status"],
                 "quality_accepted":evidence["quality_accepted"],
                 "proposal":evidence.get("proposal",{}),
+                "verified_ticket_metadata":evidence.get("ticket_metadata",{}),
                 "missing_causes_proven":False,
             })
         elif job["state"] in ("FAILED","EXPIRED"):

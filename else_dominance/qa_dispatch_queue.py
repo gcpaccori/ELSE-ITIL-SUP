@@ -24,6 +24,22 @@ SCHEMA = "else.itil.qa.outbound-dispatch.v1"
 SOURCE = "ELSE70/dbITIL_D/dbo.taIncidente"
 QUERY = "ITIL_2026_09_CASE_EXACT_READ"
 ROOT = Path("/home/u23u/else_itil_dynamic_nuget_qa_20261109/runs")
+COHORTS={
+    "2026-09":{
+        "query_id":QUERY,
+        "root":ROOT,
+        "source_file":"qa/LiveITILQARead.cs",
+        "allowed_count":545,
+        "hand_id":"itil.qa.nuget.exact.read.v1",
+    },
+    "2026-01-last10":{
+        "query_id":"ITIL_2026_01_LAST10_CASE_EXACT_READ",
+        "root":Path("/home/u23u/else_itil_janlast10_qa_20261110/runs"),
+        "source_file":"qa/JanLast10ExactRead.cs",
+        "allowed_count":574,
+        "hand_id":"itil.qa.nuget.jan22-31.receipt.readonly.v1",
+    },
+}
 HEX = re.compile(r"[0-9a-f]{64}\Z")
 JOB = re.compile(r"[0-9a-f]{32}\Z")
 RUN = re.compile(r"case_[0-9a-f]{16}_[0-9a-f]{10}\Z")
@@ -95,7 +111,11 @@ def init(db: sqlite3.Connection):
 
 
 class QaDispatchQueue:
-    def __init__(self, db_path: Path, allowed: frozenset[str]):
+    def __init__(self, db_path: Path, allowed: frozenset[str],
+                 *, cohort: str="2026-09"):
+        require(cohort in COHORTS,"QA_COHORT_NOT_REGISTERED")
+        self.cohort=cohort
+        self.profile=COHORTS[cohort]
         require(db_path.is_absolute() and not db_path.is_symlink(),
                 "QUEUE_DB_PATH_INVALID")
         require(bool(allowed), "ALLOWED_CASES_EMPTY")
@@ -225,7 +245,8 @@ class QaDispatchQueue:
                 if verifier is None:
                     summary=verify_actual_receipts(
                         result,sha,
-                        min_issued_at=datetime.fromisoformat(row[4]))
+                        min_issued_at=datetime.fromisoformat(row[4]),
+                        cohort=self.cohort)
                 else:
                     # Injectable only for synthetic unit tests; runtime
                     # always uses native O5/O13/O15 proof verification.
@@ -289,11 +310,20 @@ def validate_freshness(issued_at: str, min_issued_at: datetime) -> None:
 
 
 def verify_actual_receipts(payload:dict, expected_sha:str,
-                           *, min_issued_at:datetime|None=None) -> dict:
-    """Independent callback validation; no success based on Windows say-so."""
-    from else_core.itil_nuget_o5_hand import AuthorizedNugetReceipt, QUERY_ID
-    from .qa_native_runtime import verify_native_o5
-
+                           *, min_issued_at:datetime|None=None,
+                           cohort:str="2026-09") -> dict:
+    """Independent callback validation; never cross-accept cohort receipts."""
+    require(cohort in COHORTS,"QA_COHORT_NOT_REGISTERED")
+    profile=COHORTS[cohort]
+    root=profile["root"]
+    query=profile["query_id"]
+    if cohort=="2026-09":
+        from else_core.itil_nuget_o5_hand import AuthorizedNugetReceipt, QUERY_ID
+        from .qa_native_runtime import verify_native_o5
+    else:
+        from else_core.itil_janlast10_o5_hand import AuthorizedNugetReceipt, QUERY_ID
+        from .qa_janlast10_native import verify_native_o5
+    require(QUERY_ID==query,"HAND_QUERY_ID_NOT_REGISTERED")
     require(payload.get("model_requested_tool_before_sql") is True and
             payload.get("new_qa_sql_read_executed") is True and
             payload.get("o5_o13_o15_verified") is True and
@@ -306,9 +336,9 @@ def verify_actual_receipts(payload:dict, expected_sha:str,
     require(type(run_id) is str and RUN.fullmatch(run_id) is not None
             and run_id.startswith("case_"+expected_sha[:16]+"_"),
             "RUN_ID_NOT_ALLOWED")
-    require(payload.get("private_cluster_run")==str(ROOT/run_id),
+    require(payload.get("private_cluster_run")==str(root/run_id),
             "PRIVATE_RUN_PATH_MISMATCH")
-    run_path=ROOT/run_id
+    run_path=root/run_id
     require(run_path.is_dir() and not run_path.is_symlink(),
             "QA_RUN_MISSING")
     def file(name):
@@ -340,7 +370,7 @@ def verify_actual_receipts(payload:dict, expected_sha:str,
             final.get("case_sha256")==expected_sha,
             "RECEIPT_CASE_DRIFT")
     require(request=={"type":"tool","name":"qa_exact_read",
-                     "query_id":QUERY_ID,
+                     "query_id":query,
                      "parameters":{"case_sha256":expected_sha}},
             "TOOL_REQUEST_NOT_EXACT")
     require(receipt.get("scope")==SOURCE and
@@ -361,7 +391,7 @@ def verify_actual_receipts(payload:dict, expected_sha:str,
             final.get("approved_for_training") is False and
             final.get("executed_mutations") is False,
             "FINAL_ASSERTION_INVALID")
-    code=Path(__file__).resolve().parents[1]/"qa/LiveITILQARead.cs"
+    code=Path(__file__).resolve().parents[1]/profile["source_file"]
     require(code.is_file(),"QA_CODE_NOT_AVAILABLE")
     source_raw=code.read_bytes()
     source_sha=digest(source_raw)
@@ -399,7 +429,11 @@ def verify_actual_receipts(payload:dict, expected_sha:str,
     require(type(context) is dict and
             context.get("service_code")==receipt.get("service_code") and
             context.get("module_code")==receipt.get("module_code") and
-            context.get("classification_code")==receipt.get("classification_code"),
+            context.get("classification_code")==receipt.get("classification_code") and
+            context.get("origin_code")==receipt.get("origin_code") and
+            context.get("ticket_status_code")==receipt.get("status_code") and
+            context.get("opened_at")==receipt.get("opened_at") and
+            context.get("request_bytes")==int(receipt.get("request_bytes","-1")),
             "MODEL_METADATA_NOT_BOUND_TO_SQL")
     expected_status=(quality.get("status") if accepted
                      else "NEEDS_HUMAN_TRIAGE")
@@ -408,7 +442,7 @@ def verify_actual_receipts(payload:dict, expected_sha:str,
             payload.get("quality_accepted")==accepted,
             "RESULT_STATUS_MISMATCH")
     return {"schema":SCHEMA,
-            "qa_scope":SOURCE,"query_id":QUERY,
+            "qa_scope":SOURCE,"query_id":query,
             "case_sha_prefix":expected_sha[:16],
             "state":"EVIDENCE_VERIFIED",
             "o5_o13_o15_verified":True,
@@ -417,6 +451,15 @@ def verify_actual_receipts(payload:dict, expected_sha:str,
             "diagnosis_status":expected_status,
             "quality_accepted":accepted,
             "human_review_required":True,
+            "ticket_metadata":{
+                "opened_at":receipt["opened_at"],
+                "service_code":receipt["service_code"],
+                "module_code":receipt["module_code"],
+                "classification_code":receipt["classification_code"],
+                "origin_code":receipt["origin_code"],
+                "ticket_status_code":receipt["status_code"],
+                "request_bytes":int(receipt["request_bytes"]),
+            },
             "proposal":final.get("proposal",{}) if accepted else {},
             "quality":{"accepted":accepted,
                        "schema_flags":quality.get("schema_flags",[]),
@@ -436,13 +479,16 @@ def main(argv=None):
         sp=sub.add_parser(action)
         sp.add_argument("--db",required=True,type=Path)
         sp.add_argument("--allowlist",required=True,type=Path)
+        sp.add_argument("--cohort",choices=sorted(COHORTS),
+                        default="2026-09")
         if action=="claim":
             sp.add_argument("--worker",default="ELSE62-QA")
         if action=="status":
             sp.add_argument("--job-id",required=True)
     args=p.parse_args(argv)
-    allowed=load_allowed(args.allowlist)
-    with QaDispatchQueue(args.db,allowed) as q:
+    allowed=load_allowed(
+        args.allowlist,expected_count=COHORTS[args.cohort]["allowed_count"])
+    with QaDispatchQueue(args.db,allowed,cohort=args.cohort) as q:
         if args.action=="claim":
             result=q.claim(worker=args.worker)
         elif args.action=="complete":

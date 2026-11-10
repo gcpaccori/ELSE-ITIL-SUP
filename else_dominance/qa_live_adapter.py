@@ -17,13 +17,16 @@ JOB_ID=re.compile(r"[0-9a-f]{32}\Z")
 
 
 class QaDispatchLiveAdapter:
-    allowed_queries=frozenset({QA_QUERY})
-
     def __init__(self,queue:QaDispatchQueue):
         self.queue=queue
 
+    @property
+    def allowed_queries(self):
+        return frozenset({self.queue.profile["query_id"]})
+
     def run(self,query_id:str,parameters:dict,*,scope:dict)->dict:
-        if query_id!=QA_QUERY:
+        expected_query=self.queue.profile["query_id"]
+        if query_id!=expected_query:
             return {"status":"BLOCKED","error":"QUERY_NOT_REGISTERED"}
         if type(parameters) is not dict or (
                 set(parameters)-{"case_sha256","job_id"}):
@@ -52,9 +55,10 @@ class QaDispatchLiveAdapter:
                 verified.get("repair_certified") is not False):
                 return {"status":"BLOCKED","error":"QA_RECEIPT_NOT_VERIFIED"}
             return {"status":"READ_VERIFIED",
-                    "query_id":QA_QUERY,"case_sha256":expected,
+                    "query_id":expected_query,"case_sha256":expected,
                     "job_id":job_id,
                     "source":verified.get("qa_scope"),
+                    "verified_ticket_metadata":verified.get("ticket_metadata",{}),
                     "receipt_sha256":verified.get("receipt_sha256"),
                     "provenance_verified":True,
                     "root_cause_certified":False,
