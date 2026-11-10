@@ -15,18 +15,23 @@ from threading import Lock
 
 from .agent import OpenAICompatibleModel
 from .support_desk import make_attention, record_attention, validate_ticket
-from .qa_dispatch_queue import QaDispatchQueue, load_allowed, obj as strict_qa_json
+from .qa_dispatch_queue import QaDispatchQueue, load_allowed, COHORTS, obj as strict_qa_json
 from .core_capability import ParetoInvestigationCore
 import re
 
 
 def make_handler(*, token: str, state_db: Path, primary, fallback,
                  qa_queue_db: Path | None = None,
-                 qa_allowlist: Path | None = None):
+                 qa_allowlist: Path | None = None,
+                 qa_cohort: str="2026-09"):
     lock=Lock()
     if (qa_queue_db is None) != (qa_allowlist is None):
         raise ValueError("QA_DISPATCH_CONFIGURATION_INCOMPLETE")
-    allowed=load_allowed(qa_allowlist) if qa_allowlist is not None else None
+    if qa_cohort not in COHORTS:
+        raise ValueError("QA_COHORT_NOT_REGISTERED")
+    allowed=(load_allowed(
+        qa_allowlist,expected_count=COHORTS[qa_cohort]["allowed_count"])
+        if qa_allowlist is not None else None)
 
     class Handler(BaseHTTPRequestHandler):
         server_version='ELSE-ITIL-RIV/0.1'
@@ -66,7 +71,7 @@ def make_handler(*, token: str, state_db: Path, primary, fallback,
                 if re.fullmatch(r'[0-9a-f]{32}',jid) is None:
                     return self.respond(422,{'error':'JOB_ID_INVALID'})
                 try:
-                    with QaDispatchQueue(qa_queue_db,allowed) as q:
+                    with QaDispatchQueue(qa_queue_db,allowed,cohort=qa_cohort) as q:
                         result=ParetoInvestigationCore(q).inspect(jid)
                     return self.respond(200,result)
                 except ValueError as exc:
@@ -82,7 +87,7 @@ def make_handler(*, token: str, state_db: Path, primary, fallback,
                 if re.fullmatch(r'[0-9a-f]{32}',jid) is None:
                     return self.respond(422,{'error':'JOB_ID_INVALID'})
                 try:
-                    with QaDispatchQueue(qa_queue_db,allowed) as q:
+                    with QaDispatchQueue(qa_queue_db,allowed,cohort=qa_cohort) as q:
                         return self.respond(200,q.status(jid))
                 except ValueError as exc:
                     return self.respond(404,{'error':str(exc)[:64]})
@@ -106,7 +111,7 @@ def make_handler(*, token: str, state_db: Path, primary, fallback,
                         return self.respond(422,{'error':'CORE_REQUEST_FIELDS_INVALID'})
                     if 'goals' in request and not isinstance(request['goals'],list):
                         return self.respond(422,{'error':'GOALS_ARRAY_REQUIRED'})
-                    with QaDispatchQueue(qa_queue_db,allowed) as q:
+                    with QaDispatchQueue(qa_queue_db,allowed,cohort=qa_cohort) as q:
                         response=ParetoInvestigationCore(q).start(
                             request['case_sha256'],
                             **({'goals':request['goals']}
@@ -129,7 +134,7 @@ def make_handler(*, token: str, state_db: Path, primary, fallback,
                     request=strict_qa_json(self.rfile.read(size))
                     if set(request)!={'case_sha256'}:
                         return self.respond(422,{'error':'QA_REQUEST_FIELDS_INVALID'})
-                    with QaDispatchQueue(qa_queue_db,allowed) as q:
+                    with QaDispatchQueue(qa_queue_db,allowed,cohort=qa_cohort) as q:
                         queued=q.submit(request['case_sha256'])
                     return self.respond(202,queued)
                 except (ValueError,TypeError,KeyError) as exc:
@@ -170,6 +175,7 @@ def main():
     p.add_argument('--fallback-model',default='else-itil-riv-qwen9b-gpu6')
     p.add_argument('--qa-queue-db',type=Path,default=None)
     p.add_argument('--qa-allowlist',type=Path,default=None)
+    p.add_argument('--qa-cohort',choices=sorted(COHORTS),default="2026-09")
     args=p.parse_args()
     if (args.qa_queue_db is None) != (args.qa_allowlist is None):
         p.error('QA_DISPATCH_CONFIGURATION_INCOMPLETE')
@@ -185,7 +191,8 @@ def main():
     two=OpenAICompatibleModel(args.fallback_url,args.fallback_model,timeout=155)
     server=ThreadingHTTPServer((args.host,args.port),make_handler(
         token=token,state_db=Path(args.db),primary=one,fallback=two,
-        qa_queue_db=args.qa_queue_db,qa_allowlist=args.qa_allowlist))
+        qa_queue_db=args.qa_queue_db,qa_allowlist=args.qa_allowlist,
+        qa_cohort=args.qa_cohort))
     print('SUPPORT_API_READY host=127.0.0.1 port='+str(args.port)+
           ' mode=user_submitted_no_mutations qa_dispatch='+
           str(args.qa_queue_db is not None),flush=True)
