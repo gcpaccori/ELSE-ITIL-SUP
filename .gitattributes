@@ -1,0 +1,3 @@
+
+# Original Windows reader bytes must match historical QA receipts
+qa/Feb100SapOtRead.cs whitespace=-blank-at-eof
