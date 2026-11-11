@@ -32,7 +32,7 @@ HEX32=re.compile(r"[0-9a-f]{32}\Z")
 HEX64=re.compile(r"[0-9a-f]{64}\Z")
 
 def utc(value):
-    return datetime.fromisoformat(value.replace("Z","+00:00")).astimezone(timezone.utc)
+    return datetime.fromisoformat(re.sub(r"(\.\d{6})\d+",r"\1",value.replace("Z","+00:00"))).astimezone(timezone.utc)
 
 def validate_one(path:Path,*,key:bytes,cohort,manifest):
     demand(path.is_file() and not path.is_symlink(),"OP_DELIVERY_FILE_INVALID")
