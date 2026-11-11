@@ -1,0 +1,51 @@
+capability_id	candidate_sources
+CO01	ITIL/dbo.taIncidente
+CO02	ITIL/dbo.taIncidente;ITIL/dbo.taIncidenteAtencion
+CO03	ITIL/dbo.taIncidente;ITIL/dbo.taSLAServicioActividad
+CO04	ITIL/dbo.taServicio;ITIL/dbo.taModuloBackup
+CO05	ITIL/dbo.taIncidente
+CO06	ITIL/dbo.taItemConfiguracion;ITIL/dbo.taItemConfiguracionEquipo
+CO07	ITIL/dbo.taMantenimientoEquipoInsumo
+CO08	ITIL/dbo.taItemConfiguracionControlVersion
+CO09	ITIL/dbo.taIncidente;DISTRIBUTION/dbo.taInterrupcionEnergia
+EUC01	ITIL/dbo.taItemConfiguracionEquipo
+EUC02	ITIL/dbo.taImpresoraCambioToner;ITIL/dbo.taImpresoraPaginasImpresas
+EUC03	ITIL/dbo.taItemConfiguracionVersiones
+EUC04	ITIL/dbo.taMantenimientoEquipo;ITIL/dbo.taMantenimientoEquipoAtencion
+EUC05	
+EUC06	ITIL/dbo.taItemConfiguracionEquipo
+EUC07	
+EUC08	
+ID01	ADMIN/dbo.taSolicitudCreacionUsuario;SECURITY/dbo.taGrupoUsuarioUsuario
+ID02	ADMIN/dbo.taSolicitudBajaUsuario;SECURITY/dbo.taUsuarioSesion
+ID03	SECURITY/dbo.taUsuario;SECURITY/dbo.taSolicitudRecuperacionClaveSIELSE
+ID04	SECURITY/dbo.taGrupoUsuarioUsuario;SECURITY/dbo.taGrupoUsuarioModulo;ADMIN/dbo.taSolicitudModificacionUsuario
+ID05	SECURITY/dbo.taUsuario;SECURITY/dbo.taGrupoUsuarioUsuario
+ID06	
+ID07	SECURITY/dbo.taUsuarioSesion
+ID08	SECURITY/dbo.taUsuario
+NET01	
+NET02	ITIL/dbo.taServidorAplicacion
+NET03	ITIL/dbo.taServidorAplicacion
+NET04	ITIL/dbo.taModuloBackup;ITIL/dbo.taSucursalBDBackUpMensual;ITIL/dbo.taSucursalBDBackUpRevision;ITIL/dbo.taSucursalBDBackUpSemanal
+NET05	DISTRIBUTION/dbo.taEQMedicionIONAlerta;ITIL/dbo.taItemConfiguracionEquipo
+NET06	
+NET07	
+NET08	ITIL/dbo.taServidorAplicacion
+NET09	
+NET10	
+NET11	DISTRIBUTION/dbo.taEQMedicionIONAlerta
+OP01	ITIL/dbo.taServidorAplicacion
+OP02	ITIL/dbo.taItemConfiguracionControlVersion
+OP03	ITIL/dbo.taIncidente
+OP04	COMMERCIAL/dbo.taComprobante;COMMERCIAL/dbo.taPresupuesto
+OP05	ITIL/dbo.taIncidente
+OP06	ITIL/dbo.taIncidente
+OP07	ITIL/dbo.taServidorAplicacion
+OP08	
+OP09	COMMERCIAL/dbo.taSuministro;COMMERCIAL/dbo.taComprobante
+OP10	
+SEC01	
+SEC02	ITIL/dbo.taItemConfiguracion;ITIL/dbo.taItemConfiguracionEquipo
+SEC03	
+SEC04	

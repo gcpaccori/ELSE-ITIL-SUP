@@ -1,0 +1,365 @@
+{
+  "schema": "else.itil.qa.preventive-50-public-source-summary.v1",
+  "collected_at_utc": "2026-11-11T21:15:25.8364027Z",
+  "qa_source": "ELSE70",
+  "windows_reader_sha256": "e00155fe2c27092100a221e9d0bc44582f60e37800d38ebedba006e31b8c995c",
+  "windows_receipt_sha256": "18ab261e88adfb740d5313930215e981b80b9da96106d5b505428b441e2e2a58",
+  "source_queries": 50,
+  "source_tables_with_rows": 44,
+  "source_tables_empty": 5,
+  "source_tables_blocked": 1,
+  "aggregate_queries": 12,
+  "aggregate_reads": 10,
+  "sources": [
+    {
+      "group": "ITIL",
+      "source": "dbo.taIncidente",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taIncidenteAtencion",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taIncidenteDerivacion",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taItemConfiguracion",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taItemConfiguracionEquipo",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taItemConfiguracionControlVersion",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taItemConfiguracionVersiones",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taMantenimientoEquipo",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taMantenimientoEquipoActividad",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taMantenimientoEquipoAtencion",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taMantenimientoEquipoInsumo",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taServidorAplicacion",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taServidorAplicacionRuta",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taModuloBackup",
+      "status": "EMPTY"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taSucursalBDBackUpMensual",
+      "status": "EMPTY"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taSucursalBDBackUpRevision",
+      "status": "EMPTY"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taSucursalBDBackUpSemanal",
+      "status": "EMPTY"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taImpresoraCambioToner",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taImpresoraPaginasImpresas",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taServicio",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taSLAServicioActividad",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taServicioKPI",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ITIL",
+      "source": "dbo.taModulo",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "SECURITY",
+      "source": "dbo.taUsuario",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "SECURITY",
+      "source": "dbo.taUsuarioSesion",
+      "status": "BLOCKED"
+    },
+    {
+      "group": "SECURITY",
+      "source": "dbo.taGrupoUsuario",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "SECURITY",
+      "source": "dbo.taGrupoUsuarioUsuario",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "SECURITY",
+      "source": "dbo.taGrupoUsuarioModulo",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "SECURITY",
+      "source": "dbo.taGrupoUsuarioUsuarioHistorico",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "SECURITY",
+      "source": "dbo.taGrupoUsuarioModuloHistorico",
+      "status": "EMPTY"
+    },
+    {
+      "group": "SECURITY",
+      "source": "dbo.taUsuarioBitacora",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "SECURITY",
+      "source": "dbo.taSolicitudRecuperacionClaveSIELSE",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ADMIN",
+      "source": "saelse.taActivoFijo",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ADMIN",
+      "source": "saelse.taActivoTrabajador",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ADMIN",
+      "source": "saelse.taContratoProveedor",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ADMIN",
+      "source": "dbo.taSolicitudCreacionUsuario",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ADMIN",
+      "source": "dbo.taSolicitudModificacionUsuario",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "ADMIN",
+      "source": "dbo.taSolicitudBajaUsuario",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "DISTRIBUTION",
+      "source": "dbo.taInterrupcionEnergia",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "DISTRIBUTION",
+      "source": "dbo.taSolicitudInterrupcionEnergiaRedAfectadaSuministro",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "DISTRIBUTION",
+      "source": "dbo.taEQMedicionIONAlerta",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "DISTRIBUTION",
+      "source": "dbo.taOrdenTrabajo",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "DISTRIBUTION",
+      "source": "dbo.taSolicitudTrabajoMantenimiento",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "COMMERCIAL",
+      "source": "dbo.taOrdenTrabajo",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "COMMERCIAL",
+      "source": "dbo.taSuministro",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "COMMERCIAL",
+      "source": "dbo.taPresupuesto",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "COMMERCIAL",
+      "source": "dbo.taComprobante",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "COMMERCIAL",
+      "source": "dbo.taOTCorte",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "COMMERCIAL",
+      "source": "dbo.taOTReconexion",
+      "status": "ROW_OBSERVED"
+    },
+    {
+      "group": "COMMERCIAL",
+      "source": "dbo.taReclamoComercial",
+      "status": "ROW_OBSERVED"
+    }
+  ],
+  "aggregate_proxies": [
+    {
+      "metric": "ITIL_OPEN_NOW",
+      "group": "ITIL",
+      "source": "dbo.taIncidente",
+      "status": "AGGREGATE_READ",
+      "source_rows": 255170,
+      "metric_count": 1860
+    },
+    {
+      "metric": "ITIL_2026_ROWS",
+      "group": "ITIL",
+      "source": "dbo.taIncidente",
+      "status": "AGGREGATE_READ",
+      "source_rows": 255170,
+      "metric_count": 14950
+    },
+    {
+      "metric": "CMDB_EQUIP_MONITOR_DATED",
+      "group": "ITIL",
+      "source": "dbo.taItemConfiguracionEquipo",
+      "status": "AGGREGATE_READ",
+      "source_rows": 415,
+      "metric_count": 40
+    },
+    {
+      "metric": "CMDB_EQUIP_MONITOR_2026",
+      "group": "ITIL",
+      "source": "dbo.taItemConfiguracionEquipo",
+      "status": "AGGREGATE_READ",
+      "source_rows": 415,
+      "metric_count": 0
+    },
+    {
+      "metric": "EQUIPMENT_MAINTENANCE_SOLVED",
+      "group": "ITIL",
+      "source": "dbo.taMantenimientoEquipo",
+      "status": "AGGREGATE_READ",
+      "source_rows": 6,
+      "metric_count": 0
+    },
+    {
+      "metric": "EQUIPMENT_MAINTENANCE_2026",
+      "group": "ITIL",
+      "source": "dbo.taMantenimientoEquipo",
+      "status": "AGGREGATE_READ",
+      "source_rows": 6,
+      "metric_count": 0
+    },
+    {
+      "metric": "CONFIG_VERSION_EVENTS_2026",
+      "group": "ITIL",
+      "source": "dbo.taItemConfiguracionControlVersion",
+      "status": "AGGREGATE_READ",
+      "source_rows": 2902,
+      "metric_count": 0
+    },
+    {
+      "metric": "USER_SESSIONS_2026",
+      "group": "SECURITY",
+      "source": "dbo.taUsuarioSesion",
+      "status": "BLOCKED",
+      "source_rows": null,
+      "metric_count": null
+    },
+    {
+      "metric": "USER_SESSIONS_NO_END",
+      "group": "SECURITY",
+      "source": "dbo.taUsuarioSesion",
+      "status": "BLOCKED",
+      "source_rows": null,
+      "metric_count": null
+    },
+    {
+      "metric": "USER_BLOCKED_CURRENT",
+      "group": "SECURITY",
+      "source": "dbo.taUsuario",
+      "status": "AGGREGATE_READ",
+      "source_rows": 5711,
+      "metric_count": 5
+    },
+    {
+      "metric": "USER_OFFBOARDING_2026",
+      "group": "ADMIN",
+      "source": "dbo.taSolicitudBajaUsuario",
+      "status": "AGGREGATE_READ",
+      "source_rows": 1,
+      "metric_count": 0
+    },
+    {
+      "metric": "USER_CHANGE_REQUESTS_2026",
+      "group": "ADMIN",
+      "source": "dbo.taSolicitudModificacionUsuario",
+      "status": "AGGREGATE_READ",
+      "source_rows": 31,
+      "metric_count": 0
+    }
+  ],
+  "business_ticket_conclusion_certified": false,
+  "technical_predictions_certified": false
+}

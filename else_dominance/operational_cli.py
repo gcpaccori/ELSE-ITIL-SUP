@@ -27,13 +27,15 @@ def main():
     k.add_argument('--sql',default='')
     b=sub.add_parser('batch-2026',help='Evaluación LLM de expedientes 2026 autorizados, reanudable')
     b.add_argument('--jsonl',required=True);b.add_argument('--out',required=True);b.add_argument('--limit',type=int,default=0);b.add_argument('--max-steps',type=int,default=8)
+    pc=sub.add_parser('qa-50-coverage',help='Recupera las 50 reglas preventivas originales y su cobertura de fuentes QA; no predicciones')
+    pc.add_argument('--id',default='',help='CO01, EUC04, NET04, OP06 u otra capacidad del contrato exacto')
     qc=sub.add_parser('qa-connectivity',help='Verifica recibo HMAC de la última lectura real del trabajador Windows QA (no reejecuta SQL)')
     qc.add_argument('--profile',default='',help='ID fijo de perfil, o vacío para todas las once fuentes')
     s=sub.add_parser('stats')
     a=p.parse_args()
     catalog_path=os.getenv('TIC_CATALOG_PATH','')
     qa_root=os.getenv('TIC_QA_CONNECTIVITY_ROOT','')
-    if not catalog_path and a.task!='qa-connectivity':
+    if not catalog_path and a.task not in ('qa-connectivity','qa-50-coverage'):
         p.error('TIC_CATALOG_PATH debe apuntar a un catálogo privado verificado')
     catalog=SourceCatalog(catalog_path) if catalog_path else None
     if catalog is not None and catalog.data.get('public_demo_only') is True:
@@ -42,6 +44,12 @@ def main():
     if qa_root:
         from .qa_verified_connectivity import QaSignedConnectionCatalog,verify_qa_probe
         qa_catalog=QaSignedConnectionCatalog(root=Path(qa_root))
+    from .preventive50_recovery import Preventive50Catalog
+    preventive=Preventive50Catalog()
+    if a.task=='qa-50-coverage':
+        result=preventive.describe(a.id) if a.id else preventive.summary()
+        print(json.dumps(result,ensure_ascii=False,indent=2))
+        return
     if a.task=='qa-connectivity':
         if qa_catalog is None:
             p.error('TIC_QA_CONNECTIVITY_ROOT requerido para recibos QA privados')
@@ -63,7 +71,7 @@ def main():
                 model_id=os.getenv('TIC_LLM_MODEL','')
                 if not model_url or not model_id:p.error('Se requiere TIC_LLM_BASE_URL y TIC_LLM_MODEL de un endpoint corporativo autorizado')
                 llm=OpenAICompatibleModel(model_url,model_id,os.getenv('TIC_LLM_API_KEY',''))
-                agent=InvestigationAgent(llm,EvidenceTools(memory,catalog,qa_catalog=qa_catalog),memory,max_steps=a.max_steps)
+                agent=InvestigationAgent(llm,EvidenceTools(memory,catalog,qa_catalog=qa_catalog,preventive_50=preventive),memory,max_steps=a.max_steps)
                 if a.task=='batch-2026':
                     result=HoldoutBatch(agent,ResolutionGate(catalog),now=datetime.now().strftime('%Y-%m-%dT%H:%M:%S')).run(a.jsonl,a.out,max_cases=a.limit)
                     print(json.dumps(result,ensure_ascii=False,indent=2));return

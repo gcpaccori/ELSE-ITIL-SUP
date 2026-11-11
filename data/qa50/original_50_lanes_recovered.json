@@ -1,0 +1,38 @@
+{
+  "schema": "else.itil.qa.recovered-original-lanes-20261111.v1",
+  "archive_manifest_sha256": "95d1fab799cab6f6bd780ea3a45a75040914494dd0386671b4789a1acb5b3d80",
+  "archive_date": "2026-10-22",
+  "requery_date": "2026-11-11",
+  "archived_independent_business_e2e_certifications": 0,
+  "original_source_b_created": 3,
+  "lanes": {
+    "A": {
+      "queries": 50,
+      "exact_qa_rows_and_modules": 50,
+      "missing": 0,
+      "blocked": 0,
+      "date_pase_production_present": 50,
+      "date_close_present": 46,
+      "status_code_distribution": {
+        "9": 50
+      },
+      "source_sha256": "9f0a88faa127686eb2d31135d3189fac992dab93a2b979c63c699b86def9e166",
+      "receipt_sha256": "172558d8d2645519f66e6298feca3c5b660c1eeed84e9f082c711d33529eb825",
+      "e2e_campaign_certified": false
+    },
+    "B": {
+      "queries": 50,
+      "exact_qa_rows_and_modules": 50,
+      "missing": 0,
+      "blocked": 0,
+      "date_pase_production_present": 50,
+      "date_close_present": 42,
+      "status_code_distribution": {
+        "9": 50
+      },
+      "source_sha256": "9140752296f0e68d5c874ebf22d599d07c18e348d48fc346c604fa16ce6c9b43",
+      "receipt_sha256": "c7246aae5eccbc1b325224d2ccf25d00c2dc85097e9c27699729f2580dcc21dd",
+      "e2e_campaign_certified": false
+    }
+  }
+}
