@@ -1,3 +1,7 @@
 
 # Original Windows reader bytes must match historical QA receipts
 qa/Feb100SapOtRead.cs whitespace=-blank-at-eof
+
+# Exact August Windows reader bytes are pinned in signed O5 QA receipts.
+qa/AugOperationalOtRead.cs whitespace=-blank-at-eof
+qa/AugCommercialOtRead.cs whitespace=cr-at-eol,-blank-at-eof
