@@ -5,3 +5,6 @@ qa/Feb100SapOtRead.cs whitespace=-blank-at-eof
 # Exact August Windows reader bytes are pinned in signed O5 QA receipts.
 qa/AugOperationalOtRead.cs whitespace=-blank-at-eof
 qa/AugCommercialOtRead.cs whitespace=cr-at-eol,-blank-at-eof
+
+# Exactly the signed Windows .NET reader bytes are pinned to the V2 QA receipts.
+qa/CompanyRoutedIdentity.cs whitespace=cr-at-eol,-blank-at-eof
