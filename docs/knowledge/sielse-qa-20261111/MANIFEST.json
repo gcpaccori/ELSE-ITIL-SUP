@@ -1,11 +1,11 @@
 {
   "schema": "else.itil.qa.knowledge-dossier-manifest.v1",
-  "source_atlas_sha256": "b812590b1691886d360cec207e504c31133132c870363307ff00b1fc036b8f66",
+  "source_atlas_sha256": "7de662b8a0687bd138f944846c0a945b7fd8b91ff06b8af45c6240fc5190b059",
   "documents": [
     {
       "file": "00_ATLAS_MAESTRO.md",
-      "bytes": 2694,
-      "sha256": "f6e4bd9bd32bf8e6a6c6c6ec5acbcbea3cf66069603018b5cca1c831fe51ef58"
+      "bytes": 2923,
+      "sha256": "fb26dff5388b4013b8e421cb0498cf3d6b7291dc83ef08a347f9da5773c4238b"
     },
     {
       "file": "01_RUTAS_ESISTEMA_EMPRESA.md",
@@ -31,9 +31,16 @@
       "file": "05_COBERTURA_21_DOMINIOS_BETA.md",
       "bytes": 4588,
       "sha256": "31a2eeed5bba089aa588c4c826d6e4898f10cb98242d64472d381c2fb7b08668"
+    },
+    {
+      "file": "06_MODULOS_ITIL_REPOSITORIOS.md",
+      "bytes": 4165,
+      "sha256": "f8a9ba55d9e19d8084eca0b6ebed77a4b461a76af9e2092271c89a0fc64f74d9"
     }
   ],
   "integration_this_phase": false,
   "executed_business_procedures": 0,
-  "modified_business_rows": 0
+  "modified_business_rows": 0,
+  "itil_module_reference_rows": 3037,
+  "itil_module_repository_name_matches": 463
 }

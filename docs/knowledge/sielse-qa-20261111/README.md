@@ -26,3 +26,8 @@ Leer en orden:
 Limitaciones: el inventario de las 69 bases no es exhaustivo. Hay 16
 denegaciones de metadatos y un nombre especial no explorado.
 Una tabla identificada no equivale a una consulta funcional ni reparación.
+
+El directorio adicional 06_MODULOS_ITIL_REPOSITORIOS.md vincula 3037 registros
+de módulos ITIL con 463 repositorios candidatos. 421 contienen archivos C#.
+La correspondencia por nombre no constituye validación de versión desplegada.
+El atlas privado también incluye el directorio estructurado de 3037 módulos.

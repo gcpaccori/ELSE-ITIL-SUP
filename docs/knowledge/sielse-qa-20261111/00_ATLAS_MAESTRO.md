@@ -26,6 +26,10 @@ Fuente: ELSE70, SIELSEAccesoDatos 3.24.11.27 en ELSE62, capturas de sys.* de SQL
 | Procedimientos declarados sumados por base | 63 357 |
 | Descripciones de parámetros capturados | 78 625 |
 | Sistemas lógicos eSistema | 32 |
+| Módulos de ITIL registrados | 3 037 |
+| Valores distintos CodigoSistema en ITIL | 27 |
+| Módulos ITIL con repo corporativo de nombre coincidente | 463 |
+| Repositorios coincidentes que incluyen al menos un archivo C# | 421 |
 | Combinaciones sistema/empresa comprobadas | 64 |
 | Rutas resueltas hacia QA | 38 |
 | Dominios de datos documentados | 20 |
