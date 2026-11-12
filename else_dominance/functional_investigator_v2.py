@@ -13,7 +13,7 @@ from pathlib import Path
 from urllib.request import Request,urlopen
 import json,re,time
 
-from .functional_domain_v2 import route,DOMAINS
+from .functional_domain_v2 import route,route_with_verified_module,DOMAINS
 from .functional_contract_v2 import (
   check_plan,clarification,SCHEMA)
 
@@ -133,7 +133,7 @@ def frozen_fact_quotes(text:str)->list[str]:
         if len(eligible)==3:break
     return eligible
 
-def run_case(row:dict, *,max_attempts=2)->dict:
+def run_case(row:dict, *,max_attempts=2,verified_module_name=None)->dict:
     if type(row) is not dict or not all(
          key in row for key in ("ticket_sha256","incident_text_redacted")):
         raise ValueError("REDACTED_CASE_REQUIRED")
@@ -143,7 +143,10 @@ def run_case(row:dict, *,max_attempts=2)->dict:
     text=row["incident_text_redacted"]
     if type(text) is not str or not 1<=len(text)<=3500:
         raise ValueError("REQUEST_TEXT_INVALID")
-    decision=route(text)
+    if verified_module_name is not None:
+        decision=route_with_verified_module(text,module_name=verified_module_name)
+    else:
+        decision=route(text)
     result={
        "schema":RESULT,
        "case_sha256":sha,

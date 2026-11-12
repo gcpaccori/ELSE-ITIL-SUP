@@ -187,3 +187,60 @@ def route(text:str,*,verified_hands:Mapping[str,str]|None=None)->dict:
         "domain_evidence_status":"NOT_READ",
         "repair_certified":False,
     }
+
+
+def route_with_verified_module(text:str, *, module_name:str,
+                               verified_hands:Mapping[str,str]|None=None)->dict:
+    """Use a separately matched ITIL module name to improve *routing only*.
+
+    The model and facts continue to use the original redacted request. This
+    function neither reads a business source nor asserts a technical diagnosis.
+    Caller must bind module_name to CodigoModulo in a corporate QA source.
+    """
+    if type(module_name) is not str or not 1<=len(module_name.strip())<=200:
+        raise ValueError("CORPORATE_MODULE_NAME_REQUIRED")
+    base=route(text,verified_hands=verified_hands)
+    target=base["domain"]
+    raw=normalize(text)
+    module=normalize(module_name)
+    basis="REQUEST_ONLY"
+    # FISE names a user's organizational team, not necessarily a FISE voucher
+    # or beneficiary operation. Explicit cross-service access is IAM.
+    if (target=="COMMERCIAL_FISE"
+        and re.search(r"\b(?:ampliar|habilitar|extender)\s+(?:el\s+)?acceso\b",raw)
+        and re.search(r"\b(?:usuario|red|correo|sielse)\b",raw)
+        and not re.search(r"\b(?:vale|beneficiario|subsidio|padron)\b",raw)):
+        target="IAM"
+        basis="EXPLICIT_ACCESS_REQUEST_FISE_INCIDENTAL"
+    elif target=="UNKNOWN":
+        combined=route(module_name+" "+text,verified_hands=verified_hands)
+        if combined["domain"]!="UNKNOWN":
+            target=combined["domain"]
+            basis="EXACT_MODULE_NAME_PLUS_REQUEST"
+        elif (("sielse" in module and
+               ("instalacion" in module or "configuracion" in module))
+              and re.search(r"\b(?:escritorio|aplicativo|no accede|no inicia|abrir)\b",raw)):
+            target="ENDPOINT_SOFTWARE"
+            basis="MODULE_INSTALL_CONFIG_AND_DESKTOP_SYMPTOM"
+        elif ("deficiencias" in module and
+              re.search(r"\b(?:cargar|subir|adjuntar)\s+(?:los\s+)?archivos\b|"
+                        r"\barchivos\b.{0,30}\b(?:error|sielse)\b",raw)):
+            target="ENDPOINT_SOFTWARE"
+            basis="DEFICIENCIES_MODULE_FILE_UPLOAD_SYMPTOM"
+        elif (("encargatura" in module or "gerencia" in module)
+              and re.search(r"\b(?:habilitar|habilite|aprobacion|aprobar|permisos?)\b",raw)):
+            target="IAM"
+            basis="DELEGATED_APPROVAL_PERMISSION_REQUEST"
+    if target not in DOMAINS:
+        raise ValueError("MODULE_ROUTE_NOT_IN_DOMAINS")
+    name,required=DOMAINS[target]
+    return {**base,
+            "domain":target,"target_system":name,
+            "observations_to_obtain":list(required),
+            "needs_clarification":target=="UNKNOWN",
+            "read_hand_registered":target in (verified_hands or AVAILABLE_DEFAULT),
+            "read_hand_id":(verified_hands or AVAILABLE_DEFAULT).get(target),
+            "module_name_grounding_used":basis!="REQUEST_ONLY",
+            "module_route_basis":basis,
+            "module_name_is_business_read":False,
+            "current_domain_state_verified":False}
