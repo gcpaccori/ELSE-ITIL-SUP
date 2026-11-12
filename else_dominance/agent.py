@@ -30,9 +30,16 @@ Los campos de status son: PLAN_PROPUESTO, INVESTIGACION_PENDIENTE, NO_SUSTENTADO
 Para cada afirmación causal debes incluir evidence_refs que EXISTAN en el contexto.
 Comunícate en español. NO necesitas credenciales administrativas. En operaciones de claves o privilegios, indica el responsable autorizado, la aprobacion, las pruebas y la auditoria. Una acción de cambio nunca equivale a autorizarla ni ejecutarla.
 Declara change_domains según el tipo de CAMBIO o TRASPASO, no por palabras clave; permite múltiples. Si es desconocido, investiga; puedes decir claramente qué no sabes. Nunca inventes nombres de roles corporativos.
+Las 50 capacidades preventivas requieren cada una dos señales exactas,
+relacionadas con el mismo activo y ventana temporal. Una tabla SQL con filas no
+equivale a esas señales ni a un resultado predictivo. No recomiendes acciones
+basándote únicamente en un source map.
+Una comprobación de conectividad QA de otra fecha solo acredita que una tabla
+respondió a dos SELECT tipados: NO es un recibo para el incidente que investigas
+ni autoriza diagnosticar su estado, su causa o su reparación.
 Antes de responder como hecho, verifica columnas, disponibilidad temporal y permisos por catálogo. Si acceso es DENIED no reintentes ni asumas que consultaste. No produzcas SQL libre como acción ejecutable; pide herramientas registradas.
 Responde SOLAMENTE JSON válido (sin markdown), una de dos formas:
-{"type":"tool","name":"search_precedents|find_sources|describe_source|inspect_relation|query_live","args":{...}}
+{"type":"tool","name":"search_precedents|find_sources|describe_source|inspect_relation|inspect_qa_connection|inspect_preventive50_source|query_live","args":{...}}
 o
 {"type":"final","status":"PLAN_PROPUESTO|INVESTIGACION_PENDIENTE|NO_SUSTENTADO",
 "system_and_operation":"...", "problem":"...", "hypotheses":[{"cause":"...","evidence_refs":[],"test":"..."}],
@@ -76,7 +83,7 @@ class InvestigationAgent:
     def investigate(self,incident:dict,*,now:str,session_id:str|None=None)->dict:
         datetime.fromisoformat(now)
         sid=session_id or 'tic-'+uuid.uuid4().hex
-        context={key:incident.get(key,'') for key in ('case_ref','description','service_code','module_code','classification_code','system_version','as_of')}
+        context={key:incident.get(key,'') for key in ('case_ref','case_sha256','description','service_code','module_code','classification_code','system_version','as_of')}
         context['as_of']=incident.get('as_of') or '2026-01-01T00:00:00'
         self.memory.start_session(incident,sid,now)
         messages=[{'role':'system','content':SYSTEM},{'role':'user','content':json.dumps({'incident':context,'available_tools':self.tools.descriptions,'instructions':'Investiga mediante herramientas antes de finalizar. Si no hay evidencia, ofrece pruebas concretas.'},ensure_ascii=False)}]
@@ -116,7 +123,14 @@ class InvestigationAgent:
     def _validate(answer:dict,evidence:dict)->dict:
         # No model-generated evidence IDs may be invented. One ref is a pointer to
         # a tool receipt, NOT proof that the content establishes a cause.
-        valid={k for k,v in evidence.items() if not v['result'].get('error') and v['result'].get('status')!='BLOCKED'}
+        # A queued read or a synthetic source catalog is NOT evidence of
+        # current corporate state. Only actual verified read receipts and
+        # separately named historical precedents may ground a live claim.
+        valid={k for k,v in evidence.items()
+               if v['name']=='query_live'
+               and v['result'].get('status')=='READ_VERIFIED'
+               and v['result'].get('provenance_verified') is True
+               and v['result'].get('repair_certified') is False}
         valid.update('CASE:'+c['case_ref'] for v in evidence.values() for c in v['result'].get('cases',[]))
         invalid=[]; unsupported=[]
         for section in ('hypotheses','proposed_steps'):

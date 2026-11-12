@@ -32,8 +32,12 @@ class SourceCatalog:
                 and (not right or right in (r['left'],r['right']))]
 
 class EvidenceTools:
-    def __init__(self, memory, sources: SourceCatalog, live_adapter=None):
-        self.memory=memory;self.sources=sources;self.live_adapter=live_adapter
+    def __init__(self, memory, sources: SourceCatalog, live_adapter=None, *, qa_catalog=None, preventive_50=None):
+        self.memory=memory
+        self.sources=sources
+        self.live_adapter=live_adapter
+        self.qa_catalog=qa_catalog
+        self.preventive_50=preventive_50
     @property
     def descriptions(self):
         return {
@@ -41,7 +45,9 @@ class EvidenceTools:
           'find_sources':'Find corporate tables by problem/entity/technical concept.',
           'describe_source':'Describe confirmed columns, connection and temporal limitations.',
           'inspect_relation':'Inspect verified, ambiguous, and missing links between sources.',
-          'query_live':'Execute ONLY a registered, parameterized, read-only corporate query using an authorized connector. Returns denial otherwise.'}
+          'query_live':'Execute ONLY a registered, parameterized, read-only corporate query using an authorized connector. Returns denial otherwise.',
+          'inspect_qa_connection':'Verify a prior signed Windows QA connectivity probe for one registered source. This is NOT a ticket-specific or fresh live read.',
+          'inspect_preventive50_source':'List the original primary/secondary metrics and observed SQL candidate tables for one of the 50 preventive rules. Never a prediction PASS.'}
 
     def execute(self, name: str, args: dict, context: dict) -> dict:
         if name=='search_precedents':
@@ -62,6 +68,21 @@ class EvidenceTools:
             except ValueError:return {'error':'SOURCE_NOT_IN_VERIFIED_CATALOG'}
         if name=='inspect_relation':
             return {'relations':self.sources.relations(str(args.get('source_id') or ''),str(args.get('other_source_id') or ''))}
+        if name=='inspect_preventive50_source':
+            if self.preventive_50 is None:
+                return {'status':'BLOCKED','error':'PREVENTIVE_50_CONTRACT_NOT_LOADED'}
+            if type(args) is not dict or set(args)!={'capability_id'}:
+                return {'status':'BLOCKED','error':'PREVENTIVE_50_ARGS_NOT_EXACT'}
+            return self.preventive_50.describe(args['capability_id'])
+        if name=='inspect_qa_connection':
+            if self.qa_catalog is None:
+                return {'status':'BLOCKED','error':'QA_SIGNED_CONNECTIVITY_NOT_CONFIGURED'}
+            if type(args) is not dict or set(args)!={'profile_id'}:
+                return {'status':'BLOCKED','error':'QA_PROFILE_ARGS_NOT_EXACT'}
+            try:
+                return self.qa_catalog.report(args['profile_id'])
+            except (ValueError,OSError,KeyError,TypeError):
+                return {'status':'BLOCKED','error':'QA_CONNECTIVITY_RECEIPT_UNTRUSTED_OR_STALE'}
         if name=='query_live':
             if self.live_adapter is None:
                 return {'error':'LIVE_CONNECTOR_NOT_CONNECTED','status':'BLOCKED'}

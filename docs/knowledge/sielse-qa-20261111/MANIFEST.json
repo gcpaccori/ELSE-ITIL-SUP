@@ -1,0 +1,46 @@
+{
+  "schema": "else.itil.qa.knowledge-dossier-manifest.v1",
+  "source_atlas_sha256": "7de662b8a0687bd138f944846c0a945b7fd8b91ff06b8af45c6240fc5190b059",
+  "documents": [
+    {
+      "file": "00_ATLAS_MAESTRO.md",
+      "bytes": 2923,
+      "sha256": "fb26dff5388b4013b8e421cb0498cf3d6b7291dc83ef08a347f9da5773c4238b"
+    },
+    {
+      "file": "01_RUTAS_ESISTEMA_EMPRESA.md",
+      "bytes": 2988,
+      "sha256": "7cdeb8cce1def689a2301d3ebf9d132cbb22a80398fc117165e2c4c933afe5c9"
+    },
+    {
+      "file": "02_DICCIONARIO_20_DOMINIOS.md",
+      "bytes": 36173,
+      "sha256": "4ca0c7ec4a0ffd38ca5d15f7216bdc5de611eb49045e1197d4b9c97daef4b8a7"
+    },
+    {
+      "file": "03_RELACIONES_RIESGOS_BRECHAS.md",
+      "bytes": 3241,
+      "sha256": "4ee9af096992faa919a63c504550761e47723e084c040b942f9320f9282955b4"
+    },
+    {
+      "file": "04_PLAYBOOK_ATENCIONES.md",
+      "bytes": 1208,
+      "sha256": "e27a5a48cace1126f9f378f85874268e9b4551e4f41ebf931a3adb2a4a3ecd72"
+    },
+    {
+      "file": "05_COBERTURA_21_DOMINIOS_BETA.md",
+      "bytes": 4588,
+      "sha256": "31a2eeed5bba089aa588c4c826d6e4898f10cb98242d64472d381c2fb7b08668"
+    },
+    {
+      "file": "06_MODULOS_ITIL_REPOSITORIOS.md",
+      "bytes": 4165,
+      "sha256": "f8a9ba55d9e19d8084eca0b6ebed77a4b461a76af9e2092271c89a0fc64f74d9"
+    }
+  ],
+  "integration_this_phase": false,
+  "executed_business_procedures": 0,
+  "modified_business_rows": 0,
+  "itil_module_reference_rows": 3037,
+  "itil_module_repository_name_matches": 463
+}
