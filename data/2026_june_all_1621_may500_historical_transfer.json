@@ -1,0 +1,33 @@
+{
+  "schema": "else.itil.qa.2026-may500-to-june1621-temporal-transfer.v1",
+  "train_month": "2026-05",
+  "train_count": 500,
+  "test_month": "2026-06",
+  "test_count": 1621,
+  "verified_train_cohorts": 5,
+  "training_receipt_sha256": [
+    "c4e8795200f523d4475f979c2154c38c64b1a37b18427e968ac73386badf19d4",
+    "de39a39f777473259439accea9032462fc21eb253b3ccc267a9248bd8dc0feab",
+    "201d0535af2df7e475a881e591c9f140ff241120c5eb35069e48b85563cea64b",
+    "2265215389c05f70c887ccade5dfcbcc73776526ba14cd8b938ba22dbaffb8b8",
+    "61987f1ea55239f613dad11c485342cb18bce724b885a89adea80265c37df2df"
+  ],
+  "june_request_receipt_sha256": "b1303359fb72aee6720fba660555fe6a8332cb1af26232239d19650061dab5fd",
+  "june_history_receipt_sha256": "cf071c227432996c50a328e03703c28b851ce883235b46f0bfb60f979398ae10",
+  "zero_june_holdout_notes_used_for_training": true,
+  "strict_earlier_month_training": true,
+  "all_1621_tested": true,
+  "outcomes_are_lexical_historical_sql_overlap_not_verified_technical_fixes": true,
+  "repairs_certified": 0,
+  "business_writes_executed": 0,
+  "totals": {
+    "both_predicted_and_gold_structured": 160,
+    "evaluated": 1621,
+    "exact_kind_table_fields": 72,
+    "gold_has_sql_reference": 462,
+    "note_nonempty": 1610,
+    "prior_may500_pattern_for_module": 715,
+    "request_grounded_sql_candidate": 302,
+    "same_kind_and_table": 95
+  }
+}
