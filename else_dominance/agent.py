@@ -34,6 +34,16 @@ Las 50 capacidades preventivas requieren cada una dos señales exactas,
 relacionadas con el mismo activo y ventana temporal. Una tabla SQL con filas no
 equivale a esas señales ni a un resultado predictivo. No recomiendes acciones
 basándote únicamente en un source map.
+Una lectura inspect_case_qa_state permite observar SOLO campos
+firmados de ITIL.taIncidente de un expediente exacto en una fecha QA.
+NO equivale a leer el estado de órdenes, suministros, cobranzas, facturas ni
+de otros objetos de negocio. No puedes concluir ninguna causa sin lectura
+independiente del objeto empresarial y su relación oficial con el ticket.
+Una lectura inspect_reported_ot_qa_state utiliza un código OT
+explícito en el texto de un ticket firmado y comprueba SU fila en
+dbo.taOrdenTrabajo (Distribución QA). NO certifica una llave foránea
+ITIL↔OT ni que esa OT provoque el ticket. Cero filas significa solo
+cero resultados en la tabla consultada; nunca ausencia global.
 Los patrones de procedimientos históricos provienen de notas de otros incidentes;
 pueden describir sentencias SQL comentadas o no ejecutadas. Los nombres de campos
 solo son hipótesis cuando la solicitud menciona directamente el objeto; si la
@@ -45,7 +55,7 @@ respondió a dos SELECT tipados: NO es un recibo para el incidente que investiga
 ni autoriza diagnosticar su estado, su causa o su reparación.
 Antes de responder como hecho, verifica columnas, disponibilidad temporal y permisos por catálogo. Si acceso es DENIED no reintentes ni asumas que consultaste. No produzcas SQL libre como acción ejecutable; pide herramientas registradas.
 Responde SOLAMENTE JSON válido (sin markdown), una de dos formas:
-{"type":"tool","name":"search_precedents|find_sources|describe_source|inspect_relation|inspect_qa_connection|inspect_preventive50_source|inspect_historical_procedures|inspect_historical_mechanisms|query_live","args":{...}}
+{"type":"tool","name":"search_precedents|find_sources|describe_source|inspect_relation|inspect_qa_connection|inspect_preventive50_source|inspect_historical_procedures|inspect_historical_mechanisms|inspect_case_qa_state|inspect_reported_ot_qa_state|query_live","args":{...}}
 o
 {"type":"final","status":"PLAN_PROPUESTO|INVESTIGACION_PENDIENTE|NO_SUSTENTADO",
 "system_and_operation":"...", "problem":"...", "hypotheses":[{"cause":"...","evidence_refs":[],"test":"..."}],
@@ -159,6 +169,36 @@ class InvestigationAgent:
         clean['verified_evidence_refs']=sorted(valid)
         live_verified=any(v['name']=='query_live' and v['result'].get('provenance_verified') is True
                           and v['result'].get('status')=='READ_VERIFIED' for v in evidence.values())
+        case_snapshots=[
+            {'reference':k,'field':v['result']['field'],
+             'source':v['result']['source'],
+             'observed_at_utc':v['result']['observed_at_utc'],
+             'receipt_sha256':v['result']['receipt_sha256'],
+             'observed_value':v['result']['observed_value']}
+            for k,v in evidence.items()
+            if (v['name']=='inspect_case_qa_state'
+                and v['result'].get('status')=='READ_VERIFIED_QA_SNAPSHOT'
+                and v['result'].get('provenance_verified') is True
+                and v['result'].get('business_object_relation_verified') is False)
+        ]
+        reported_ot_observations=[
+            {'reference':k,'field':v['result']['field'],
+             'source':v['result']['source'],
+             'observed_value':v['result']['observed_value'],
+             'observed_at_utc':v['result']['observed_at_utc'],
+             'receipt_sha256':v['result']['receipt_sha256'],
+             'formal_itil_ot_link_verified':False}
+            for k,v in evidence.items()
+            if (v['name']=='inspect_reported_ot_qa_state'
+                and v['result'].get('status')=='READ_VERIFIED_REPORTED_OT_QA_FIELD'
+                and v['result'].get('provenance_verified') is True
+                and v['result'].get('formal_itil_ot_link_verified') is False)
+        ]
+        clean['reported_ot_field_observations']=reported_ot_observations
+        clean['reported_ot_field_evidence_available']=bool(reported_ot_observations)
+        clean['case_itil_field_observations']=case_snapshots
+        clean['case_itil_metadata_verified']=bool(case_snapshots)
+        clean['domain_business_state_verified']=False
         clean['causal_diagnosis_confirmed']=False  # Requires external outcome adjudication.
         clean['live_source_evidence_available']=live_verified
         if not live_verified and clean.get('confidence')=='HIGH':clean['confidence']='LOW'
