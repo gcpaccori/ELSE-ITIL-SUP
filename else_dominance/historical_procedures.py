@@ -9,6 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 import json
 import re
+import unicodedata
 
 CATALOG_SCHEMA="else.itil.qa.historical-procedure-mentions.v1"
 WORD=r"[A-Za-z_][A-Za-z_0-9]*"
@@ -75,6 +76,84 @@ def extract_note_mentions(note:str,*,allow_table_columns:dict[str,set[str]]|None
         unique[key]=item
     return list(unique.values())[:30]
 
+# A pattern from another incident is NOT promoted to a candidate mechanism
+# unless the NEW request itself names a distinctive business field/object.
+# Module-only match is deliberately insufficient.
+ANCHOR_STOPWORDS=frozenset({
+    'ta','dbo','ext','mgd','codigo','cod','id','numero','nro','fecha',
+    'estado','usuario','registro','dato','datos','tabla','valor','tipo',
+    'general','sis','sielse','item','name','nombre','actual','nuevo',
+    'cabecera','detalle','version','anio','mes','tipo','empresa',
+})
+CAMEL_WORD=re.compile(r'[A-Z]?[a-z]+|[A-Z]+(?![a-z])|\d+')
+# Earlier source-atlas normalization lowercases schema identifiers, losing
+# CamelCase boundaries. Restore only known discriminative enterprise nouns.
+BUSINESS_NOUNS=frozenset({
+    'caja','cobranza','centro','recaudacion','cliente','suministro',
+    'orden','trabajo','comprobante','lectura','factura','expediente',
+    'adjunto','modulo','contratista','lote','almacen','material',
+    'documento','movimiento','deposito','consumo','planilla',
+    'deuda','corte','reconexion','recibo','inspeccion','coordenadas',
+})
+
+def _fold(value:str)->str:
+    text=unicodedata.normalize('NFKD',value)
+    return ''.join(x for x in text if not unicodedata.combining(x)).lower()
+
+def _ident_terms(name:str)->set[str]:
+    if not normalize_ref(name):
+        return set()
+    pieces=name.replace('.',' ').replace('_',' ')
+    words=[]
+    for part in pieces.split():
+        if part.startswith('ta') and len(part)>5 and part[2].isupper():
+            part=part[2:]
+        words+=CAMEL_WORD.findall(part)
+    basic={
+        x for x in (_fold(w) for w in words)
+        if len(x)>=4 and x not in ANCHOR_STOPWORDS
+    }
+    folded=_fold(name)
+    for noun in BUSINESS_NOUNS:
+        if noun in folded:
+            basic.add(noun)
+    # Longer unsplit tokens are not useful for grounding user prose.
+    return {x for x in basic if len(x)<=24}
+
+def request_anchored_patterns(patterns:list[dict],request:str)->dict:
+    """Partition previous SQL mentions into request-grounded vs unsupported hints.
+
+    Grounding is **lexical only**. A correct name does not prove current
+    state, a performed historical action, or any resolution.
+    """
+    if type(request) is not str or len(request)>3500:
+        raise ValueError('HISTORICAL_REQUEST_NOT_BOUNDED')
+    text=_fold(request)
+    text=re.sub(r'[^a-z0-9]+',' ',text)
+    tokens=set(text.split())
+    anchored=[]
+    nonanchored=0
+    for item in patterns:
+        fields=set().union(*(_ident_terms(f) for f in item.get('fields',[]))) if item.get('fields') else set()
+        table=_ident_terms(item.get('table',''))
+        field_hit=sorted(tokens&fields)
+        table_hit=sorted(tokens&table)
+        if field_hit:
+            rationale='EXPLICIT_BUSINESS_FIELD_TOKEN_IN_REQUEST'
+            matches=field_hit
+        elif table_hit and not fields:
+            rationale='EXPLICIT_BUSINESS_OBJECT_TOKEN_IN_REQUEST'
+            matches=table_hit
+        else:
+            nonanchored+=1
+            continue
+        anchored.append({**item,'request_grounding':rationale,
+                         'grounded_tokens':matches[:4],
+                         'not_proof_of_cause':True,'execution_confirmed':False})
+    anchored.sort(key=lambda x:(-x.get('count',0),x['table'],x['kind']))
+    return {'anchored':anchored[:5],'suppressed':nonanchored,
+            'unverified_additional':max(0,len(anchored)-5)}
+
 class HistoricalProcedureCatalog:
     def __init__(self,path:str|Path):
         path=Path(path)
@@ -137,6 +216,26 @@ class HistoricalProcedureCatalog:
           'candidate_mechanisms_not_causal_claims':True,
           'requires_ticket_specific_read':True,
           'diagnosis_verified':False,'repairs_certified':0,
+        }
+
+    def describe_for_request(self,module_code:str,request:str)->dict:
+        parent=self.describe(module_code)
+        if parent['status'] in ('BLOCKED','NO_HISTORICAL_PATTERN_AVAILABLE'):
+            return {**parent,'request_grounded_patterns':[],
+                    'case_specific_business_read_performed':False}
+        anchored=request_anchored_patterns(parent['candidate_patterns'],request)
+        return {
+          'status':('REQUEST_ANCHORED_HISTORICAL_MENTIONS_ONLY'
+                    if anchored['anchored'] else 'ABSTAIN_NO_REQUEST_FIELD_GROUNDING'),
+          'module_code':module_code,
+          'module_historical_notes_seen':parent['notes_seen'],
+          'request_grounded_patterns':anchored['anchored'],
+          'unanchored_suppressed':anchored['suppressed'],
+          'additional_anchored_suppressed':anchored['unverified_additional'],
+          'case_specific_business_read_performed':False,
+          'historical_note_only':True,
+          'cause_verified':False,'execution_confirmed':False,
+          'repair_certified':False,
         }
 
     def summary(self)->dict:

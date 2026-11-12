@@ -31,13 +31,16 @@ def main():
     pc.add_argument('--id',default='',help='CO01, EUC04, NET04, OP06 u otra capacidad del contrato exacto')
     hp=sub.add_parser('qa-history-patterns',help='Read-only historical procedure mentions, not confirmed changes')
     hp.add_argument('--module',default='',help='Exact corporate module code; empty for aggregate summary')
+    mh=sub.add_parser('qa-history-mechanisms',help='Read-only explicit-request mechanism matches from earlier corporate notes')
+    mh.add_argument('--module',required=True,help='Exact corporate module ID')
+    mh.add_argument('--request',required=True,help='Request text (no historical solution)')
     qc=sub.add_parser('qa-connectivity',help='Verifica recibo HMAC de la última lectura real del trabajador Windows QA (no reejecuta SQL)')
     qc.add_argument('--profile',default='',help='ID fijo de perfil, o vacío para todas las once fuentes')
     s=sub.add_parser('stats')
     a=p.parse_args()
     catalog_path=os.getenv('TIC_CATALOG_PATH','')
     qa_root=os.getenv('TIC_QA_CONNECTIVITY_ROOT','')
-    if not catalog_path and a.task not in ('qa-connectivity','qa-50-coverage','qa-history-patterns'):
+    if not catalog_path and a.task not in ('qa-connectivity','qa-50-coverage','qa-history-patterns','qa-history-mechanisms'):
         p.error('TIC_CATALOG_PATH debe apuntar a un catálogo privado verificado')
     catalog=SourceCatalog(catalog_path) if catalog_path else None
     if catalog is not None and catalog.data.get('public_demo_only') is True:
@@ -62,6 +65,17 @@ def main():
             result=historical.describe(a.module) if a.module else historical.summary()
         except (ValueError,OSError,KeyError,TypeError) as exc:
             p.error('Historical procedure index not verifiable: '+type(exc).__name__)
+        print(json.dumps(result,ensure_ascii=False,indent=2))
+        return
+    if a.task=='qa-history-mechanisms':
+        path=os.getenv('TIC_QA_HISTORICAL_MECHANISM_PATH','')
+        if not path:
+            p.error('TIC_QA_HISTORICAL_MECHANISM_PATH required for private history')
+        from .historical_mechanism_matching import MechanismIndex
+        try:
+            result=MechanismIndex(path).suggest(a.module,a.request)
+        except (ValueError,OSError,KeyError,TypeError) as ex:
+            p.error('Historical mechanism index not verifiable: '+type(ex).__name__)
         print(json.dumps(result,ensure_ascii=False,indent=2))
         return
     if a.task=='qa-connectivity':
@@ -90,9 +104,15 @@ def main():
                 if history_path:
                     from .historical_procedures import HistoricalProcedureCatalog
                     historical=HistoricalProcedureCatalog(history_path)
+                mechanism_path=os.getenv('TIC_QA_HISTORICAL_MECHANISM_PATH','')
+                mechanisms=None
+                if mechanism_path:
+                    from .historical_mechanism_matching import MechanismIndex
+                    mechanisms=MechanismIndex(mechanism_path)
                 agent=InvestigationAgent(llm,EvidenceTools(
                     memory,catalog,qa_catalog=qa_catalog,preventive_50=preventive,
-                    historical_patterns=historical),memory,max_steps=a.max_steps)
+                    historical_patterns=historical,
+                    historical_mechanisms=mechanisms),memory,max_steps=a.max_steps)
                 if a.task=='batch-2026':
                     result=HoldoutBatch(agent,ResolutionGate(catalog),now=datetime.now().strftime('%Y-%m-%dT%H:%M:%S')).run(a.jsonl,a.out,max_cases=a.limit)
                     print(json.dumps(result,ensure_ascii=False,indent=2));return
