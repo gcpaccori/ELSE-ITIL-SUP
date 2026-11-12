@@ -49,13 +49,20 @@ def main():
     lc.add_argument('--module',required=True)
     lc.add_argument('--as-of',required=True)
     lc.add_argument('--view',choices=('summary','derivation_events'),default='summary')
+    contract=sub.add_parser('qa-itil-application-contract',
+        help='Inspect same-ITIL-module PK route, or unresolved derivation type for exact signed case')
+    contract.add_argument('--case-sha256',required=True)
+    contract.add_argument('--module',required=True)
+    contract.add_argument('--as-of',required=True)
+    contract.add_argument('--view',choices=('module_route','derivation_type'),required=True)
+    contract.add_argument('--type-code',choices=('1','2','3'),default='')
     qc=sub.add_parser('qa-connectivity',help='Verifica recibo HMAC de la última lectura real del trabajador Windows QA (no reejecuta SQL)')
     qc.add_argument('--profile',default='',help='ID fijo de perfil, o vacío para todas las once fuentes')
     s=sub.add_parser('stats')
     a=p.parse_args()
     catalog_path=os.getenv('TIC_CATALOG_PATH','')
     qa_root=os.getenv('TIC_QA_CONNECTIVITY_ROOT','')
-    if not catalog_path and a.task not in ('qa-connectivity','qa-50-coverage','qa-history-patterns','qa-history-mechanisms','qa-case-state','qa-reported-ot-state','qa-itil-lifecycle'):
+    if not catalog_path and a.task not in ('qa-connectivity','qa-50-coverage','qa-history-patterns','qa-history-mechanisms','qa-case-state','qa-reported-ot-state','qa-itil-lifecycle','qa-itil-application-contract'):
         p.error('TIC_CATALOG_PATH debe apuntar a un catálogo privado verificado')
     catalog=SourceCatalog(catalog_path) if catalog_path else None
     if catalog is not None and catalog.data.get('public_demo_only') is True:
@@ -160,6 +167,38 @@ def main():
             p.error('Native ITIL lifecycle receipts could not be verified')
         print(json.dumps(result,ensure_ascii=False,indent=2))
         return
+    def load_itil_application_contract(lifecycle=None):
+        root=os.getenv('TIC_QA_ITIL_APPLICATION_CONTRACT_ROOT','')
+        month=os.getenv('TIC_QA_MONTHEND_ROOT','')
+        key=os.getenv('TIC_QA_RECEIPT_SIGNING_KEY','')
+        if not (root and month and key):
+            p.error('TIC_QA_ITIL_APPLICATION_CONTRACT_ROOT, TIC_QA_MONTHEND_ROOT, TIC_QA_RECEIPT_SIGNING_KEY required')
+        if lifecycle is None:
+            lifecycle=load_itil_lifecycle()
+        from .qa_derivation_contracts import VerifiedDerivationContracts
+        return VerifiedDerivationContracts(
+            private_root=Path(root),
+            metadata_source=ROOT/'qa/derivation2026/DerivationContractsProbe.cs',
+            route_source=ROOT/'qa/derivation2026/ModuleRouteRead.cs',
+            monthly_root=Path(month),
+            month_reader=ROOT/'qa/monthend2026/MonthEnd100Read.cs',
+            signing_key=Path(key),lifecycle=lifecycle)
+    if a.task=='qa-itil-application-contract':
+        if (a.view=='module_route' and a.type_code) or (a.view=='derivation_type' and not a.type_code):
+            p.error('Only type view requires --type-code; module_route must omit it')
+        try:
+            contract=load_itil_application_contract()
+            if a.view=='module_route':
+                output=contract.inspect_route(
+                    case_sha256=a.case_sha256,module_code=a.module,as_of=a.as_of)
+            else:
+                output=contract.inspect_type_for_case(
+                    case_sha256=a.case_sha256,module_code=a.module,as_of=a.as_of,
+                    type_code=a.type_code)
+        except (ValueError,OSError,KeyError,TypeError):
+            p.error('Application contract receipts could not be verified')
+        print(json.dumps(output,ensure_ascii=False,indent=2))
+        return
     if a.task=='qa-connectivity':
         if qa_catalog is None:
             p.error('TIC_QA_CONNECTIVITY_ROOT requerido para recibos QA privados')
@@ -200,13 +239,17 @@ def main():
                 lifecycle=None
                 if os.getenv('TIC_QA_ITIL_LIFECYCLE_ROOT'):
                     lifecycle=load_itil_lifecycle()
+                contract=None
+                if os.getenv('TIC_QA_ITIL_APPLICATION_CONTRACT_ROOT'):
+                    contract=load_itil_application_contract(lifecycle)
                 agent=InvestigationAgent(llm,EvidenceTools(
                     memory,catalog,qa_catalog=qa_catalog,preventive_50=preventive,
                     historical_patterns=historical,
                     historical_mechanisms=mechanisms,
                     case_state=case_state,
                     reported_ot=reported_ot,
-                    itil_lifecycle=lifecycle),memory,max_steps=a.max_steps)
+                    itil_lifecycle=lifecycle,
+                    derivation_contracts=contract),memory,max_steps=a.max_steps)
                 if a.task=='batch-2026':
                     result=HoldoutBatch(agent,ResolutionGate(catalog),now=datetime.now().strftime('%Y-%m-%dT%H:%M:%S')).run(a.jsonl,a.out,max_cases=a.limit)
                     print(json.dumps(result,ensure_ascii=False,indent=2));return

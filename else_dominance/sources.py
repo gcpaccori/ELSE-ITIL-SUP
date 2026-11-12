@@ -32,7 +32,7 @@ class SourceCatalog:
                 and (not right or right in (r['left'],r['right']))]
 
 class EvidenceTools:
-    def __init__(self, memory, sources: SourceCatalog, live_adapter=None, *, qa_catalog=None, preventive_50=None, historical_patterns=None, historical_mechanisms=None, case_state=None, reported_ot=None, itil_lifecycle=None):
+    def __init__(self, memory, sources: SourceCatalog, live_adapter=None, *, qa_catalog=None, preventive_50=None, historical_patterns=None, historical_mechanisms=None, case_state=None, reported_ot=None, itil_lifecycle=None, derivation_contracts=None):
         self.memory=memory
         self.sources=sources
         self.live_adapter=live_adapter
@@ -43,6 +43,7 @@ class EvidenceTools:
         self.case_state=case_state
         self.reported_ot=reported_ot
         self.itil_lifecycle=itil_lifecycle
+        self.derivation_contracts=derivation_contracts
     @property
     def descriptions(self):
         return {
@@ -57,7 +58,8 @@ class EvidenceTools:
           'inspect_historical_mechanisms':'Suggest only explicit-request-anchored mechanism mentions from prior signed historical notes of the same module. NOT performed fixes. Exact args: module_code.',
           'inspect_case_qa_state':'Read exactly ONE named field for this preauthorized 2026 ITIL incident from a signed, case-bound dated QA snapshot; not related commercial/OT state or current live proof. Exact args: field.',
           'inspect_reported_ot_qa_state':'Read one QA field for an OT identifier reported verbatim in this exact signed ticket. NOT an official ITIL-to-OT relation and NOT a repair. Exact args: field.',
-          'inspect_itil_lifecycle':'Read the signed incident-specific ITIL attention/derivation/lookup counts and coded derivation events via exact CodigoIncidente key equality. This is NOT a declared SQL FK, semantic action, or repair. Exact args: view=summary|derivation_events.'}
+          'inspect_itil_lifecycle':'Read the signed incident-specific ITIL attention/derivation/lookup counts and coded derivation events via exact CodigoIncidente key equality. This is NOT a declared SQL FK, semantic action, or repair. Exact args: view=summary|derivation_events.',
+          'inspect_itil_application_contract':'Read same-ITIL-database module/service key evidence or a type code from the exact incident. AliasBDE and DLL are only declarations, not physical DB routes or a business-object FK. Exact args: view=module_route OR view=derivation_type with type_code.'}
 
     def execute(self, name: str, args: dict, context: dict) -> dict:
         if name=='search_precedents':
@@ -145,6 +147,20 @@ class EvidenceTools:
                 case_sha256=context['case_sha256'],
                 module_code=context['module_code'],
                 as_of=context['as_of'],view=args['view'])
+        if name=='inspect_itil_application_contract':
+            if self.derivation_contracts is None:
+                return {'status':'BLOCKED','error':'ITIL_APPLICATION_CONTRACT_RECEIPTS_NOT_LOADED'}
+            if type(args) is not dict or not context.get('case_sha256') or not context.get('module_code') or not context.get('as_of'):
+                return {'status':'BLOCKED','error':'ITIL_APPLICATION_CONTRACT_CASE_SCOPE_MISSING'}
+            if set(args)=={'view'} and args['view']=='module_route':
+                return self.derivation_contracts.inspect_route(
+                    case_sha256=context['case_sha256'],module_code=context['module_code'],
+                    as_of=context['as_of'])
+            if set(args)=={'view','type_code'} and args['view']=='derivation_type':
+                return self.derivation_contracts.inspect_type_for_case(
+                    case_sha256=context['case_sha256'],module_code=context['module_code'],
+                    as_of=context['as_of'],type_code=args['type_code'])
+            return {'status':'BLOCKED','error':'ITIL_APPLICATION_CONTRACT_ARGS_NOT_EXACT'}
         if name=='inspect_preventive50_source':
             if self.preventive_50 is None:
                 return {'status':'BLOCKED','error':'PREVENTIVE_50_CONTRACT_NOT_LOADED'}

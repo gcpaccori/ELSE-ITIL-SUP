@@ -1,0 +1,172 @@
+{
+  "schema": "else.itil.qa.2026-derivation-semantics-route-summary.v1",
+  "status": "MODULE_ROUTING_VERIFIED_SEMANTICS_UNRESOLVED",
+  "case_count": 900,
+  "distinct_module_codes": 128,
+  "independent_module_routes_crosschecked": 760,
+  "independent_module_codes_crosschecked": 65,
+  "module_pk_matched": 900,
+  "service_pk_matched": 900,
+  "alias_bde_declared_cases": 662,
+  "module_dll_declared_cases": 900,
+  "derivation_type_code_counts": {
+    "1": 900,
+    "2": 90,
+    "3": 165
+  },
+  "type_semantics_verified": 0,
+  "type_semantics_unresolved": 3,
+  "metadata_receipt_sha256": "21bd9888a55e68e1dbc94549a9399138a607cccd30701b6dde4ce6bb8f417428",
+  "module_routes_receipt_sha256": "dd8d3e1c687192f70d2994557ee8cbcf7d3dadcd07c8e6d4dae67da715764ae1",
+  "itil_lifecycle_receipt_sha256": "e4c8818388972a207dc0ce89cfcb06c01134ba439aa5bc66a4487cf57aabc8b0",
+  "business_fk_certified": 0,
+  "physical_db_route_certified": 0,
+  "business_repairs_certified": 0,
+  "business_modifications": 0,
+  "read_only_sources": [
+    "ELSE70/dbITIL_D/dbo.taIncidente",
+    "ELSE70/dbITIL_D/dbo.taModulo",
+    "ELSE70/dbITIL_D/dbo.taServicio",
+    "ELSE70/dbITIL_D/dbo.taIncidenteDerivacion"
+  ],
+  "module_and_service_relations": "OBSERVED_SAME_DATABASE_PRIMARY_KEY_MATCH_ONLY",
+  "source_alias_bde_is_not_a_physical_database_route": true,
+  "source_dll_name_is_not_execution_trace": true,
+  "no_derivation_type_lookup_table_observed_in_signed_sql_probe": true,
+  "sql_routine_definitions_not_found_in_metadata_probe": true,
+  "other_application_definitions_not_examined_as_proof": true,
+  "semantics_1": {
+    "status": "UNRESOLVED_NO_AUTHORITATIVE_SQL_DICTIONARY_OR_LOGIC",
+    "type_code": "1",
+    "observed_events": 900,
+    "meaning": null,
+    "allow_business_interpretation": false,
+    "meaning_source": "NO_AUTHORITATIVE_DICTIONARY_IN_SQL_PROBE",
+    "metadata_receipt_sha256": "21bd9888a55e68e1dbc94549a9399138a607cccd30701b6dde4ce6bb8f417428",
+    "lifecycle_receipt_sha256": "e4c8818388972a207dc0ce89cfcb06c01134ba439aa5bc66a4487cf57aabc8b0",
+    "causal_repair_certified": false
+  },
+  "semantics_2": {
+    "status": "UNRESOLVED_NO_AUTHORITATIVE_SQL_DICTIONARY_OR_LOGIC",
+    "type_code": "2",
+    "observed_events": 90,
+    "meaning": null,
+    "allow_business_interpretation": false,
+    "meaning_source": "NO_AUTHORITATIVE_DICTIONARY_IN_SQL_PROBE",
+    "metadata_receipt_sha256": "21bd9888a55e68e1dbc94549a9399138a607cccd30701b6dde4ce6bb8f417428",
+    "lifecycle_receipt_sha256": "e4c8818388972a207dc0ce89cfcb06c01134ba439aa5bc66a4487cf57aabc8b0",
+    "causal_repair_certified": false
+  },
+  "semantics_3": {
+    "status": "UNRESOLVED_NO_AUTHORITATIVE_SQL_DICTIONARY_OR_LOGIC",
+    "type_code": "3",
+    "observed_events": 165,
+    "meaning": null,
+    "allow_business_interpretation": false,
+    "meaning_source": "NO_AUTHORITATIVE_DICTIONARY_IN_SQL_PROBE",
+    "metadata_receipt_sha256": "21bd9888a55e68e1dbc94549a9399138a607cccd30701b6dde4ce6bb8f417428",
+    "lifecycle_receipt_sha256": "e4c8818388972a207dc0ce89cfcb06c01134ba439aa5bc66a4487cf57aabc8b0",
+    "causal_repair_certified": false
+  },
+  "per_month": {
+    "2026-01": {
+      "cases": 100,
+      "module_pk_matches": 100,
+      "service_pk_matches": 100,
+      "alias_bde_declared": 76,
+      "module_dll_declared": 100,
+      "module_codes_unique": 54,
+      "physical_business_db_routes_certified": 0,
+      "official_business_fk_certified": 0
+    },
+    "2026-02": {
+      "cases": 100,
+      "module_pk_matches": 100,
+      "service_pk_matches": 100,
+      "alias_bde_declared": 72,
+      "module_dll_declared": 100,
+      "module_codes_unique": 56,
+      "physical_business_db_routes_certified": 0,
+      "official_business_fk_certified": 0
+    },
+    "2026-03": {
+      "cases": 100,
+      "module_pk_matches": 100,
+      "service_pk_matches": 100,
+      "alias_bde_declared": 79,
+      "module_dll_declared": 100,
+      "module_codes_unique": 45,
+      "physical_business_db_routes_certified": 0,
+      "official_business_fk_certified": 0
+    },
+    "2026-04": {
+      "cases": 100,
+      "module_pk_matches": 100,
+      "service_pk_matches": 100,
+      "alias_bde_declared": 65,
+      "module_dll_declared": 100,
+      "module_codes_unique": 38,
+      "physical_business_db_routes_certified": 0,
+      "official_business_fk_certified": 0
+    },
+    "2026-05": {
+      "cases": 100,
+      "module_pk_matches": 100,
+      "service_pk_matches": 100,
+      "alias_bde_declared": 79,
+      "module_dll_declared": 100,
+      "module_codes_unique": 51,
+      "physical_business_db_routes_certified": 0,
+      "official_business_fk_certified": 0
+    },
+    "2026-06": {
+      "cases": 100,
+      "module_pk_matches": 100,
+      "service_pk_matches": 100,
+      "alias_bde_declared": 78,
+      "module_dll_declared": 100,
+      "module_codes_unique": 47,
+      "physical_business_db_routes_certified": 0,
+      "official_business_fk_certified": 0
+    },
+    "2026-07": {
+      "cases": 100,
+      "module_pk_matches": 100,
+      "service_pk_matches": 100,
+      "alias_bde_declared": 79,
+      "module_dll_declared": 100,
+      "module_codes_unique": 43,
+      "physical_business_db_routes_certified": 0,
+      "official_business_fk_certified": 0
+    },
+    "2026-08": {
+      "cases": 100,
+      "module_pk_matches": 100,
+      "service_pk_matches": 100,
+      "alias_bde_declared": 63,
+      "module_dll_declared": 100,
+      "module_codes_unique": 39,
+      "physical_business_db_routes_certified": 0,
+      "official_business_fk_certified": 0
+    },
+    "2026-09": {
+      "cases": 100,
+      "module_pk_matches": 100,
+      "service_pk_matches": 100,
+      "alias_bde_declared": 71,
+      "module_dll_declared": 100,
+      "module_codes_unique": 52,
+      "physical_business_db_routes_certified": 0,
+      "official_business_fk_certified": 0
+    }
+  },
+  "totals": {
+    "alias_bde_declared": 662,
+    "cases": 900,
+    "module_dll_declared": 900,
+    "module_pk_matches": 900,
+    "official_business_fk_certified": 0,
+    "physical_business_db_routes_certified": 0,
+    "service_pk_matches": 900
+  }
+}
