@@ -1,0 +1,39 @@
+{
+  "schema": "else.itil.qa.2026-june5-crossdb-rootcause-summary.v1",
+  "selected_june_cases": 5,
+  "databases_checked": 13,
+  "company_routes_verified": 3,
+  "official_routes": {
+    "1": "dbComercial001_D",
+    "4": "dbComercial004_D",
+    "100": "dbComercial100_D"
+  },
+  "cases_with_any_unique_ot_row_across_sources": 3,
+  "cases_with_routed_company_row": 2,
+  "historical_objects_found_in_gerencial_only": 1,
+  "cases_with_different_routed_and_gerencial_qa_state": 1,
+  "campaign_cases_not_found": 1,
+  "personal_identifier_not_bound_to_request_and_ambiguous": 1,
+  "status_breakdown": {
+    "CAMPAIGN_NOT_FOUND_IN_13_ALLOWLISTED_QA_DATABASES": 1,
+    "GERENCIAL_ONLY_NO_ROUTED_TRANSACTIONAL_ROW": 1,
+    "PERSONAL_IDENTIFIER_NOTE_ONLY_AMBIGUOUS": 1,
+    "ROUTED_ROW_FOUND_CAUSALITY_UNVERIFIED": 1,
+    "ROUTED_ROW_WITH_GERENCIAL_DIVERGENCE": 1
+  },
+  "audited_business_transitions_certified": 0,
+  "business_repairs_certified": 0,
+  "business_writes_executed": 0,
+  "historical_before_after_certified": 0,
+  "cdc_enabled_in_checked_four_databases": 0,
+  "june_backup_records_visible_in_else70_msdb_for_checked_four": 0,
+  "external_backups_not_excluded": true,
+  "current_qa_rows_cannot_prove_state_in_june": true,
+  "source_code_sql_receipt_bindings": {
+    "initial_case_read": "c11c59c344d51fd649e84f3a397a1496dadaafd37b3222b8ec10530468256ff7",
+    "crossdb_search": "f69988cec048bf13767017f26daf68cbef801db061216143512302e508b71df6",
+    "recovered_business_rows": "6bd937e81af33e971d596f3f2bb5a49c458dcc93687fbcd59247fab28ad8a850",
+    "company_factory_route": "9cb84fcbec85de332962714e612e842d5a1315e69ac6341056751eb1b1ff8475",
+    "historical_availability_metadata": "3b79af2c0e65be7824c6b84772da5b15573064f9dc8a30156b0696638ff438b1"
+  }
+}
