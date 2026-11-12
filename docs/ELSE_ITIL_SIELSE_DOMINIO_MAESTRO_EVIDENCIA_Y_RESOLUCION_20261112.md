@@ -50,6 +50,14 @@ Distribución tiene taOrdenTrabajo homónima pero de esquema diferente; por ejem
 
 **Importante:** los primeros cinco casos proceden del juicio de un modelo; los otros 57 se seleccionaron retrospectivamente por similitud SQL. No sumar ambos grupos ni llamar al estudio retrospectivo una evaluación ciega independiente.
 
+### Actualización de recuperación de identificadores originales (12/11/2026)
+
+La auditoría posterior sobre el **texto ITIL original no anonimizado** recuperó **620 candidatas numéricas de 19 dígitos por expediente**, de las cuales **619 referencias expediente–clave coincidieron por PK exacta y sucursal en SQL QA**. Representan **525 identificadores empresariales distintos** y aparecen en **55 de los 57 casos**. El procedimiento anterior, sobre corpus anonimizado con marcadores [NUMERO], solo podía enlazar con seguridad tres casos etiquetados.
+
+El hallazgo **no invalida** la clasificación anterior de 41 casos sin PK explícita etiquetada: significa que pueden recuperarse claves numeradas sin etiqueta mediante coincidencia exacta con el campo PK de negocio. La categoría de consulta OT/cobranza fue seleccionada retrospectivamente, y la relación ticket–objeto todavía no constituye FK oficial ni evidencia de reparación.
+
+Véase [Recuperación de claves de solicitudes originales](QA_ITIL_JUNE2026_RECUPERACION_IDENTIFICADORES_ORIGINALES_20261112.md) y el agregado data/2026_june57_original_request_pk_recovery.json.
+
 ## 3. Por qué 72 coincidencias no equivalen a 72 habilidades
 
 La deduplicación de notas firmadas de junio observó **13 familias de procedimientos** en los 72 casos, con 76 relaciones expediente/familia porque ciertos tickets contienen más de una operación documentada.

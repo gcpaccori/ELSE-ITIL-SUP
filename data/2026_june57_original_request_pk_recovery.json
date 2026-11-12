@@ -1,0 +1,56 @@
+{
+  "schema": "else.itil.qa.2026-june57-request-pk-recovery-aggregate.v1",
+  "period": "2026-06",
+  "source": "ELSE70/dbITIL_D - DescripcionSolicitud",
+  "cohort_was_selected_posthoc_using_previous_documentary_overlap": true,
+  "historical_solution_not_read_for_identifier_recovery": true,
+  "rich_text_generic_numeric_tokens_ignored": true,
+  "current_qa_pk_presence_not_a_repair": true,
+  "ticket_business_fk_not_formally_certified": true,
+  "business_writes": 0,
+  "business_repairs_certified": 0,
+  "totals": {
+    "candidate_case_pk_pairs": 620,
+    "cases_with_exact_pk_matches": 55,
+    "cases_with_multiple_pk_matches": 42,
+    "cases_with_single_pk_match": 13,
+    "cases_without_19_digit_number": 1,
+    "cases_without_exact_pk_match": 2,
+    "collection_cases_matched": 35,
+    "distinct_business_primary_keys": 525,
+    "matched_case_pk_pairs": 619,
+    "newly_rescued_vs_strict_request_pk": 52,
+    "ot_cases_matched": 20,
+    "repeat_ticket_key_memberships": 94,
+    "repeated_business_keys_across_tickets": 87,
+    "selected_cases": 57,
+    "unmatched_candidates": 1
+  },
+  "matched_databases": [
+    {
+      "category": "COLLECTION",
+      "database": "dbComercial001_Diario",
+      "match_count": 489
+    },
+    {
+      "category": "OT",
+      "database": "dbDistribucion_D",
+      "match_count": 3
+    },
+    {
+      "category": "OT",
+      "database": "dbGerencial_D",
+      "match_count": 127
+    }
+  ],
+  "residual_cross_type_match_not_counted": true,
+  "receipt_proofs": {
+    "bulk": "1d9b5d09742aac809077a8f56df9a8bafc56fa3d87bc133770c9b95f4544177c",
+    "cohort": "694440fe2d78cb127a4f83b106ebbe39d506f71f8240c9f3773fad278181259e",
+    "june_1621_original_request": "b1303359fb72aee6720fba660555fe6a8332cb1af26232239d19650061dab5fd",
+    "old": "5c499e4527c68cfd3df165c29178457bea0f39f4f2f91277dbefb7229c7c1bf1",
+    "profile": "7382f4c7bdfe7535b0971ef7aa597b26ecbc82763d045acd546a3c8eebf570c6",
+    "residual": "2b9ab7e17ad1169ab110c6b7650bbdfd9c8ed506dac914ba48309bbfac1179d7"
+  },
+  "private_receipts_hold_unmasked_ids": true
+}

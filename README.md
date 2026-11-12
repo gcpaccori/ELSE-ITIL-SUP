@@ -29,6 +29,16 @@ que el procedimiento histórico se haya ejecutado ni que exista una
 reparación verificada.** La base Comercial001 no es destino universal:
 verifica la empresa/sucursal comercial y la ruta corporativa del objeto.
 
+### Identificadores de negocio de junio recuperados en QA
+
+La extracción sobre las 57 solicitudes originales de junio (sin leer sus notas
+de solución) obtuvo **619 relaciones expediente–PK**, equivalentes a **525
+identificadores empresariales distintos**, para 55 de 57 expedientes. La lista
+completa queda protegida en ELSE62/elsecluster5. La selección de los expedientes
+fue retrospectiva: no es un nuevo benchmark ciego ni acredita reparaciones.
+
+Metodología: [recuperación de identificadores originales](docs/QA_ITIL_JUNE2026_RECUPERACION_IDENTIFICADORES_ORIGINALES_20261112.md).
+
 ## Ejecutar pruebas
 
 ```bash
