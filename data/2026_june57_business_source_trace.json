@@ -1,0 +1,65 @@
+{
+  "schema": "else.itil.qa.2026-june57-business-candidate-aggregate.v1",
+  "month": "2026-06",
+  "source": "ELSE62 SQL QA ELSE70, read-only",
+  "selection_posthoc": "57_MAY500_JUNE1621_EXACT_SQL_OVERLAP_OT_COLLECTION",
+  "selected_cases": 57,
+  "original_june_cases": 1621,
+  "selection_from_72_documentary_exact_cases": true,
+  "not_a_blind_llm_evaluation": true,
+  "strict_identifiers_only": true,
+  "unverified_actual_business_execution": true,
+  "no_personal_name_or_business_identifier_in_public_output": true,
+  "receipt_sha256": {
+    "selection": "694440fe2d78cb127a4f83b106ebbe39d506f71f8240c9f3773fad278181259e",
+    "source_and_business": "5c499e4527c68cfd3df165c29178457bea0f39f4f2f91277dbefb7229c7c1bf1",
+    "june1621_requests": "b1303359fb72aee6720fba660555fe6a8332cb1af26232239d19650061dab5fd",
+    "june1621_history": "cf071c227432996c50a328e03703c28b851ce883235b46f0bfb60f979398ae10"
+  },
+  "totals": {
+    "business_writes": 0,
+    "case_repairs_certified": 0,
+    "cases_with_any_positive_db_match": 12,
+    "cases_with_complete_before_after": 0,
+    "collections": 35,
+    "distinct_database_sources_scanned": 13,
+    "gold_only_pk_case_found": 9,
+    "historical_exact_sql_overlap_selection": 57,
+    "identity_AMBIGUOUS_IDENTIFIER": 3,
+    "identity_CONFLICT_REQUEST_HISTORICAL_IDS": 1,
+    "identity_HISTORICAL_NOTE_ONLY_PK": 9,
+    "identity_NO_EXPLICIT_PRIMARY_KEY": 41,
+    "identity_REQUEST_AND_NOTE_SAME_ID": 3,
+    "no_safe_explicit_id_for_lookup": 45,
+    "ot": 22,
+    "positive_business_rows_at_most": 12,
+    "positive_daily_copy_pairs": 2,
+    "positive_database_case_pairs": 12,
+    "positive_gerencial_pairs": 10,
+    "request_backed_pk_case_found": 3,
+    "selected_cases": 57,
+    "selected_exact_id_lookups": 12
+  },
+  "by_category": {
+    "COLLECTION": {
+      "HISTORICAL_NOTE_ONLY_PK": 2,
+      "NO_EXPLICIT_PRIMARY_KEY": 33,
+      "cases_found_any_db": 2,
+      "database_case_positive": 2
+    },
+    "OT": {
+      "AMBIGUOUS_IDENTIFIER": 3,
+      "CONFLICT_REQUEST_HISTORICAL_IDS": 1,
+      "HISTORICAL_NOTE_ONLY_PK": 7,
+      "NO_EXPLICIT_PRIMARY_KEY": 8,
+      "REQUEST_AND_NOTE_SAME_ID": 3,
+      "cases_found_any_db": 10,
+      "database_case_positive": 10
+    }
+  },
+  "dbs_with_ot_and_collection_tables": 9,
+  "outcome": "PROVISIONAL_OBJECT_RECOVERY_ONLY",
+  "backdated_business_state_not_verified": true,
+  "real_fix_certified": false,
+  "business_mutations": 0
+}

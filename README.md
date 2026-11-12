@@ -15,6 +15,20 @@
 
 `resolution_batch.py` se conserva **solo como harness de evaluación retrospectiva** (no es un segundo motor de producción). `batch_2026.py` orquesta el núcleo LLM con holdout; nunca expone la solución del caso al modelo.
 
+## Evidencia empresarial de junio y guía maestra
+
+El mapa corporativo de fuentes, la metodología para interpretar notas
+históricas y la escalera de evidencia E0–E5 se documentan en
+[Dominio maestro SIELSE/ITIL](docs/ELSE_ITIL_SIELSE_DOMINIO_MAESTRO_EVIDENCIA_Y_RESOLUCION_20261112.md).
+
+La evaluación firmada de junio cubre 1.621 incidentes; una ampliación
+*retrospectiva* sobre 57 casos de órdenes de trabajo/cobranzas encontró
+12 identificadores existentes en alguna copia QA, pero solo tres estaban
+corroborados desde la solicitud original. **Encontrar una fila no implica
+que el procedimiento histórico se haya ejecutado ni que exista una
+reparación verificada.** La base Comercial001 no es destino universal:
+verifica la empresa/sucursal comercial y la ruta corporativa del objeto.
+
 ## Ejecutar pruebas
 
 ```bash
