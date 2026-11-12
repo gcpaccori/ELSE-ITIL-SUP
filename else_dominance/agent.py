@@ -50,6 +50,12 @@ es FK declarada; un codigo de tipo de derivacion NO prueba que se escaló,
 se corrigió el problema ni se ejecutó una reparación. Las fechas de esos
 registros no llevan zona horaria certificada. No interpretes su significado
 funcional sin un diccionario de códigos validado.
+inspect_itil_application_contract verifica declaracion de AliasBDE,
+NombreDLL, modulo y servicio mediante claves de ITIL. No infieras que el
+alias equivale a una base fisica, no derives CodigoSuministro o CodigoOrdenTrabajo
+desde CodigoIncidente, y no interpretes codigo 1/2/3 de derivacion sin
+diccionario corporativo verificado. La ausencia de un diccionario SQL
+consultable NO prueba el significado de estos codigos.
 Los patrones de procedimientos históricos provienen de notas de otros incidentes;
 pueden describir sentencias SQL comentadas o no ejecutadas. Los nombres de campos
 solo son hipótesis cuando la solicitud menciona directamente el objeto; si la
@@ -61,7 +67,7 @@ respondió a dos SELECT tipados: NO es un recibo para el incidente que investiga
 ni autoriza diagnosticar su estado, su causa o su reparación.
 Antes de responder como hecho, verifica columnas, disponibilidad temporal y permisos por catálogo. Si acceso es DENIED no reintentes ni asumas que consultaste. No produzcas SQL libre como acción ejecutable; pide herramientas registradas.
 Responde SOLAMENTE JSON válido (sin markdown), una de dos formas:
-{"type":"tool","name":"search_precedents|find_sources|describe_source|inspect_relation|inspect_qa_connection|inspect_preventive50_source|inspect_historical_procedures|inspect_historical_mechanisms|inspect_case_qa_state|inspect_reported_ot_qa_state|inspect_itil_lifecycle|query_live","args":{...}}
+{"type":"tool","name":"search_precedents|find_sources|describe_source|inspect_relation|inspect_qa_connection|inspect_preventive50_source|inspect_historical_procedures|inspect_historical_mechanisms|inspect_case_qa_state|inspect_reported_ot_qa_state|inspect_itil_lifecycle|inspect_itil_application_contract|query_live","args":{...}}
 o
 {"type":"final","status":"PLAN_PROPUESTO|INVESTIGACION_PENDIENTE|NO_SUSTENTADO",
 "system_and_operation":"...", "problem":"...", "hypotheses":[{"cause":"...","evidence_refs":[],"test":"..."}],
@@ -218,6 +224,21 @@ class InvestigationAgent:
         ]
         clean['itil_lifecycle_key_equality_observed']=bool(lifecycle_observations)
         clean['itil_lifecycle_observations']=lifecycle_observations
+        route_observations=[
+            {'reference':k,
+             'module_code':v['result']['module_code'],
+             'declared_alias_bde':v['result']['alias_bde_declared'],
+             'declared_dll':v['result']['module_dll_declared'],
+             'source_receipt_sha256':v['result']['receipt_sha256'],
+             'business_join_certified':False}
+            for k,v in evidence.items()
+            if (v['name']=='inspect_itil_application_contract'
+                and v['result'].get('status')=='ITIL_MODULE_AND_SERVICE_ROWS_VERIFIED'
+                and v['result'].get('business_entity_fk_certified') is False)
+        ]
+        clean['itil_module_route_observed']=bool(route_observations)
+        clean['itil_module_route_observations']=route_observations
+        clean['derivation_type_semantics_certified']=False
         clean['case_itil_field_observations']=case_snapshots
         clean['case_itil_metadata_verified']=bool(case_snapshots)
         clean['domain_business_state_verified']=False
