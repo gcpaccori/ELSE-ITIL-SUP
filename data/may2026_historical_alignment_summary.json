@@ -1,0 +1,111 @@
+{
+  "schema": "else.itil.qa.may2026-four-cohorts-historical-comparison.v1",
+  "purpose": "functional diagnosis vs corporate historical procedures; NOT autonomous execution",
+  "qa_source": "ELSE70/dbITIL_D/dbo.taIncidente",
+  "qa_month": "2026-05",
+  "qa_month_total": 1714,
+  "cohort_selection": "FechaSolicitud ASC, CodigoIncidente ASC; contiguous non-overlapping 100-record pages",
+  "distinct_qa_incidents": 400,
+  "corp_qa_receipts_hmac_verified": 8,
+  "all_private_case_keys_unique": true,
+  "historical_solutions_hidden_from_author_model": true,
+  "business_modifications": 0,
+  "development_cohort": {
+    "cases": 100,
+    "old_valid_plans": 56,
+    "replay_valid_plans": 97,
+    "replay_unknown": 1,
+    "replay_rejected": 2,
+    "disposition": "regression-only; cohort used to design the routing ontology"
+  },
+  "untouched_fourth_cohort": {
+    "cases": 100,
+    "recognized_domain": 88,
+    "valid_plan": 85,
+    "needs_clarification": 12,
+    "draft_rejected": 3,
+    "historical_judge": {
+      "alignment_NO_VALID_MODEL_PLAN": 15,
+      "alignment_PARTIALLY_RELEVANT": 27,
+      "alignment_RELEVANT_DIAGNOSTIC_CHECKS": 50,
+      "alignment_UNRELATED_CHECKS": 8,
+      "history_GENERIC_CLOSURE_NOTE": 63,
+      "history_SPECIFIC_TECHNICAL_ACTION": 37,
+      "judge_JUDGE_PROVISIONAL_PASS": 100,
+      "literal_grounded_high_confidence_candidates": 23,
+      "literal_quote_grounded_candidates": 23,
+      "model_CLARIFICATION_REQUIRED": 12,
+      "model_FUNCTIONAL_DRAFT_CONTRACT_PASS": 85,
+      "model_FUNCTIONAL_DRAFT_REJECTED": 3,
+      "model_pass_specific_history": 34,
+      "specific_related_candidates": 31,
+      "total": 100,
+      "valid_plan_unrelated": 8
+    },
+    "disposition": "fresh at time of first blind evaluation; subsequent history review means no longer untouched"
+  },
+  "cohorts": {
+    "1": {
+      "rank_range_in_month": [
+        1,
+        100
+      ],
+      "sql_records": 100,
+      "source_receipt_sha256": "c5fba76c2370e257e98900876633cd5e85de7887246e71a0767f36a958d35033",
+      "history_receipt_sha256": "c4e8795200f523d4475f979c2154c38c64b1a37b18427e968ac73386badf19d4",
+      "history_nonempty": 100,
+      "first_date": "2026-05-01",
+      "last_date": "2026-05-04",
+      "record_identity_verified": true
+    },
+    "2": {
+      "rank_range_in_month": [
+        101,
+        200
+      ],
+      "sql_records": 100,
+      "source_receipt_sha256": "86db7403b1817002856ba94ec062639f4704da294eb587efd724e8f63a065cef",
+      "history_receipt_sha256": "de39a39f777473259439accea9032462fc21eb253b3ccc267a9248bd8dc0feab",
+      "history_nonempty": 100,
+      "first_date": "2026-05-04",
+      "last_date": "2026-05-05",
+      "record_identity_verified": true
+    },
+    "3": {
+      "rank_range_in_month": [
+        201,
+        300
+      ],
+      "sql_records": 100,
+      "source_receipt_sha256": "0afdd09d9379920c8d14e1a1c5e21ded30e573d8cfbaeffd9fdb42a61aba7775",
+      "history_receipt_sha256": "201d0535af2df7e475a881e591c9f140ff241120c5eb35069e48b85563cea64b",
+      "history_nonempty": 100,
+      "first_date": "2026-05-05",
+      "last_date": "2026-05-07",
+      "record_identity_verified": true
+    },
+    "4": {
+      "rank_range_in_month": [
+        301,
+        400
+      ],
+      "sql_records": 100,
+      "source_receipt_sha256": "19613d2dd26d6e426e21ac003a7416945c4bfb55e85e0c13a9e90cd2691dec24",
+      "history_receipt_sha256": "2265215389c05f70c887ccade5dfcbcc73776526ba14cd8b938ba22dbaffb8b8",
+      "history_nonempty": 100,
+      "first_date": "2026-05-07",
+      "last_date": "2026-05-08",
+      "record_identity_verified": true
+    }
+  },
+  "methodology": {
+    "evaluating_author_model": "qwen35-9b (blind)",
+    "historical_judge": "qwen35-4b (independent model; provisional comparisons)",
+    "quote_grounding": "exact normalized substring of historical note, not semantic proof",
+    "no_claim_of_ground_truth_procedure_accuracy": true,
+    "manual_error_examples_audited": true,
+    "root_causes_independently_verified": 0,
+    "repairs_e2e_verified": 0,
+    "notes": "Historical SQL snippets describe what was written in ticket, not necessarily executed; do not turn SQL comments into performed changes."
+  }
+}
