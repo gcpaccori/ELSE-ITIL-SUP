@@ -1,0 +1,243 @@
+{
+  "schema": "else.itil.qa.march2026-first10-public-test-report.v1",
+  "execution_date": "2026-11-12",
+  "period": "2026-03",
+  "selection": "first 10 by FechaSolicitud ASC, CodigoIncidente ASC",
+  "source": "ELSE70/dbITIL_D/dbo.taIncidente",
+  "month_total": 1869,
+  "rows_tested": 10,
+  "signed_windows_receipt_verified": true,
+  "sql_receipt_sha256": "7f43487f06326115a8677cde15c58edd33853c969d88f488e059b4467c668275",
+  "domain_source_receipt_sha256": "0727d4870b85543719605c4e057057cc02d3305aaf816b9c0f2626a632329e9f",
+  "windows_sql_first10_success": 10,
+  "first_model_draft_pass": 3,
+  "module_grounded_draft_pass": 10,
+  "model_causal_fixes_proven": 0,
+  "business_e2e_proven": 0,
+  "business_sql_source_probes": 9,
+  "business_sql_probes_with_rows": 8,
+  "business_sql_probes_empty": 1,
+  "business_sql_probes_blocked": 0,
+  "target_business_case_reads_completed": 0,
+  "historical_solutions_seen": false,
+  "database_modifications": 0,
+  "domain_counts": {
+    "COMMERCIAL_BILLING": 2,
+    "ENDPOINT_SOFTWARE": 2,
+    "COMMERCIAL_CASH": 2,
+    "MGD": 2,
+    "IAM": 2
+  },
+  "cases": [
+    {
+      "rank": 1,
+      "opened_at": "2026-03-02T07:30:00",
+      "company": 1,
+      "module": "0109200111000",
+      "service": "1",
+      "domain": "COMMERCIAL_BILLING",
+      "route_basis": "REQUEST_ONLY",
+      "baseline_status": "FUNCTIONAL_DRAFT_CONTRACT_PASS",
+      "model_test_status": "FUNCTIONAL_DRAFT_CONTRACT_PASS",
+      "plan_checks": 2,
+      "model_attempts": 1,
+      "source_probe": {
+        "checked_sources": 2,
+        "sources_with_rows": 1,
+        "sources_empty": 1,
+        "sources_blocked": 0,
+        "business_record_link_to_incident_verified": false
+      },
+      "business_e2e_verified": false
+    },
+    {
+      "rank": 2,
+      "opened_at": "2026-03-02T07:46:00",
+      "company": 1,
+      "module": "2606",
+      "service": "60",
+      "domain": "ENDPOINT_SOFTWARE",
+      "route_basis": "MODULE_INSTALL_CONFIG_AND_DESKTOP_SYMPTOM",
+      "baseline_status": "CLARIFICATION_REQUIRED",
+      "model_test_status": "FUNCTIONAL_DRAFT_CONTRACT_PASS",
+      "plan_checks": 2,
+      "model_attempts": 1,
+      "source_probe": {
+        "checked_sources": 0,
+        "sources_with_rows": 0,
+        "sources_empty": 0,
+        "sources_blocked": 0,
+        "business_record_link_to_incident_verified": false
+      },
+      "business_e2e_verified": false
+    },
+    {
+      "rank": 3,
+      "opened_at": "2026-03-02T07:51:00",
+      "company": 1,
+      "module": "0109200111000",
+      "service": "1",
+      "domain": "COMMERCIAL_BILLING",
+      "route_basis": "REQUEST_ONLY",
+      "baseline_status": "FUNCTIONAL_DRAFT_CONTRACT_PASS",
+      "model_test_status": "FUNCTIONAL_DRAFT_CONTRACT_PASS",
+      "plan_checks": 2,
+      "model_attempts": 1,
+      "source_probe": {
+        "checked_sources": 2,
+        "sources_with_rows": 1,
+        "sources_empty": 1,
+        "sources_blocked": 0,
+        "business_record_link_to_incident_verified": false
+      },
+      "business_e2e_verified": false
+    },
+    {
+      "rank": 4,
+      "opened_at": "2026-03-02T08:00:00",
+      "company": 3,
+      "module": "0102100100000",
+      "service": "1",
+      "domain": "COMMERCIAL_CASH",
+      "route_basis": "EXACT_MODULE_NAME_PLUS_REQUEST",
+      "baseline_status": "CLARIFICATION_REQUIRED",
+      "model_test_status": "FUNCTIONAL_DRAFT_CONTRACT_PASS",
+      "plan_checks": 2,
+      "model_attempts": 1,
+      "source_probe": {
+        "checked_sources": 2,
+        "sources_with_rows": 2,
+        "sources_empty": 0,
+        "sources_blocked": 0,
+        "business_record_link_to_incident_verified": false
+      },
+      "business_e2e_verified": false
+    },
+    {
+      "rank": 5,
+      "opened_at": "2026-03-02T08:01:00",
+      "company": 3,
+      "module": "0102100100000",
+      "service": "1",
+      "domain": "COMMERCIAL_CASH",
+      "route_basis": "EXACT_MODULE_NAME_PLUS_REQUEST",
+      "baseline_status": "CLARIFICATION_REQUIRED",
+      "model_test_status": "FUNCTIONAL_DRAFT_CONTRACT_PASS",
+      "plan_checks": 2,
+      "model_attempts": 1,
+      "source_probe": {
+        "checked_sources": 2,
+        "sources_with_rows": 2,
+        "sources_empty": 0,
+        "sources_blocked": 0,
+        "business_record_link_to_incident_verified": false
+      },
+      "business_e2e_verified": false
+    },
+    {
+      "rank": 6,
+      "opened_at": "2026-03-02T08:18:00",
+      "company": 1,
+      "module": "2507",
+      "service": "50",
+      "domain": "MGD",
+      "route_basis": "REQUEST_ONLY",
+      "baseline_status": "FUNCTIONAL_DRAFT_CONTRACT_PASS",
+      "model_test_status": "FUNCTIONAL_DRAFT_CONTRACT_PASS",
+      "plan_checks": 2,
+      "model_attempts": 1,
+      "source_probe": {
+        "checked_sources": 3,
+        "sources_with_rows": 3,
+        "sources_empty": 0,
+        "sources_blocked": 0,
+        "business_record_link_to_incident_verified": false
+      },
+      "business_e2e_verified": false
+    },
+    {
+      "rank": 7,
+      "opened_at": "2026-03-02T08:20:00",
+      "company": 1,
+      "module": "2507",
+      "service": "50",
+      "domain": "MGD",
+      "route_basis": "EXACT_MODULE_NAME_PLUS_REQUEST",
+      "baseline_status": "CLARIFICATION_REQUIRED",
+      "model_test_status": "FUNCTIONAL_DRAFT_CONTRACT_PASS",
+      "plan_checks": 2,
+      "model_attempts": 1,
+      "source_probe": {
+        "checked_sources": 3,
+        "sources_with_rows": 3,
+        "sources_empty": 0,
+        "sources_blocked": 0,
+        "business_record_link_to_incident_verified": false
+      },
+      "business_e2e_verified": false
+    },
+    {
+      "rank": 8,
+      "opened_at": "2026-03-02T08:24:00",
+      "company": 1,
+      "module": "0203100284000",
+      "service": "2",
+      "domain": "ENDPOINT_SOFTWARE",
+      "route_basis": "DEFICIENCIES_MODULE_FILE_UPLOAD_SYMPTOM",
+      "baseline_status": "CLARIFICATION_REQUIRED",
+      "model_test_status": "FUNCTIONAL_DRAFT_CONTRACT_PASS",
+      "plan_checks": 2,
+      "model_attempts": 1,
+      "source_probe": {
+        "checked_sources": 0,
+        "sources_with_rows": 0,
+        "sources_empty": 0,
+        "sources_blocked": 0,
+        "business_record_link_to_incident_verified": false
+      },
+      "business_e2e_verified": false
+    },
+    {
+      "rank": 9,
+      "opened_at": "2026-03-02T08:35:00",
+      "company": 1,
+      "module": "0301100097010",
+      "service": "3",
+      "domain": "IAM",
+      "route_basis": "DELEGATED_APPROVAL_PERMISSION_REQUEST",
+      "baseline_status": "CLARIFICATION_REQUIRED",
+      "model_test_status": "FUNCTIONAL_DRAFT_CONTRACT_PASS",
+      "plan_checks": 2,
+      "model_attempts": 1,
+      "source_probe": {
+        "checked_sources": 2,
+        "sources_with_rows": 2,
+        "sources_empty": 0,
+        "sources_blocked": 0,
+        "business_record_link_to_incident_verified": false
+      },
+      "business_e2e_verified": false
+    },
+    {
+      "rank": 10,
+      "opened_at": "2026-03-02T08:37:00",
+      "company": 1,
+      "module": "2701",
+      "service": "70",
+      "domain": "IAM",
+      "route_basis": "EXPLICIT_ACCESS_REQUEST_FISE_INCIDENTAL",
+      "baseline_status": "FUNCTIONAL_DRAFT_REJECTED",
+      "model_test_status": "FUNCTIONAL_DRAFT_CONTRACT_PASS",
+      "plan_checks": 2,
+      "model_attempts": 1,
+      "source_probe": {
+        "checked_sources": 2,
+        "sources_with_rows": 2,
+        "sources_empty": 0,
+        "sources_blocked": 0,
+        "business_record_link_to_incident_verified": false
+      },
+      "business_e2e_verified": false
+    }
+  ]
+}
