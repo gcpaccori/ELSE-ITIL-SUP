@@ -1,0 +1,140 @@
+{
+  "schema": "else.itil.qa.2026-june72-historical-procedure-families.v1",
+  "period": "2026-06",
+  "source_month": "2026-05",
+  "model_training_prior_cases": 500,
+  "evaluated_june_original_cases": 1621,
+  "selection_is_posthoc_documentary_overlap": true,
+  "same_case_history_never_available_during_blind_authoring": true,
+  "procedural_signature_is_table_kind_set_fields_not_exact_business_action": true,
+  "sql_reference_is_not_execution": true,
+  "source_receipt_sha256": "b1303359fb72aee6720fba660555fe6a8332cb1af26232239d19650061dab5fd",
+  "history_receipt_sha256": "cf071c227432996c50a328e03703c28b851ce883235b46f0bfb60f979398ae10",
+  "counts": {
+    "cases_selected": 72,
+    "canonical_procedure_families": 13,
+    "case_family_memberships": 76,
+    "collection_cases": 35,
+    "commercial_ot_cases": 22,
+    "document_attachment_cases": 10,
+    "reconnection_procedure_cases": 4,
+    "other_cases": 15,
+    "historical_transactions_certified": 0,
+    "enterprise_repairs_certified": 0
+  },
+  "families": [
+    {
+      "table": "tacobranza",
+      "operation": "UPDATE_MENTIONED",
+      "fields": [
+        "codigocaja"
+      ],
+      "unique_cases_mentioning_family": 35,
+      "executed_transaction_proven": false
+    },
+    {
+      "table": "taordentrabajo",
+      "operation": "UPDATE_MENTIONED",
+      "fields": [
+        "codigoestadoordentrabajo"
+      ],
+      "unique_cases_mentioning_family": 13,
+      "executed_transaction_proven": false
+    },
+    {
+      "table": "tadocumentotramiteadjunto",
+      "operation": "DELETE_MENTIONED",
+      "fields": [],
+      "unique_cases_mentioning_family": 10,
+      "executed_transaction_proven": false
+    },
+    {
+      "table": "spregistrarotreconexion",
+      "operation": "PROCEDURE_CALL_MENTIONED",
+      "fields": [],
+      "unique_cases_mentioning_family": 4,
+      "executed_transaction_proven": false
+    },
+    {
+      "table": "taordentrabajo",
+      "operation": "UPDATE_MENTIONED",
+      "fields": [
+        "codigocontratista",
+        "codigocontratistacontrato"
+      ],
+      "unique_cases_mentioning_family": 3,
+      "executed_transaction_proven": false
+    },
+    {
+      "table": "taordentrabajo",
+      "operation": "UPDATE_MENTIONED",
+      "fields": [
+        "fechaejecucionprogramacion"
+      ],
+      "unique_cases_mentioning_family": 3,
+      "executed_transaction_proven": false
+    },
+    {
+      "table": "taordentrabajo",
+      "operation": "UPDATE_MENTIONED",
+      "fields": [
+        "fechafactibilidadejecucion"
+      ],
+      "unique_cases_mentioning_family": 2,
+      "executed_transaction_proven": false
+    },
+    {
+      "table": "tacontrato",
+      "operation": "UPDATE_MENTIONED",
+      "fields": [
+        "codigoestadocontrato",
+        "codigomotivoanulacioncontrato",
+        "fechaanulacion"
+      ],
+      "unique_cases_mentioning_family": 1,
+      "executed_transaction_proven": false
+    },
+    {
+      "table": "taordentrabajo",
+      "operation": "UPDATE_MENTIONED",
+      "fields": [
+        "codigocontratistacontrato"
+      ],
+      "unique_cases_mentioning_family": 1,
+      "executed_transaction_proven": false
+    },
+    {
+      "table": "taotcambiomedidorregistroporcodigo",
+      "operation": "PROCEDURE_CALL_MENTIONED",
+      "fields": [],
+      "unique_cases_mentioning_family": 1,
+      "executed_transaction_proven": false
+    },
+    {
+      "table": "taotlecturamenor",
+      "operation": "UPDATE_MENTIONED",
+      "fields": [
+        "codigomedidor"
+      ],
+      "unique_cases_mentioning_family": 1,
+      "executed_transaction_proven": false
+    },
+    {
+      "table": "tasuministro",
+      "operation": "UPDATE_MENTIONED",
+      "fields": [
+        "codigoestadosuministro",
+        "fechaanulacion"
+      ],
+      "unique_cases_mentioning_family": 1,
+      "executed_transaction_proven": false
+    },
+    {
+      "table": "tasuministroguardar",
+      "operation": "PROCEDURE_CALL_MENTIONED",
+      "fields": [],
+      "unique_cases_mentioning_family": 1,
+      "executed_transaction_proven": false
+    }
+  ]
+}
