@@ -1,0 +1,38 @@
+{
+  "schema": "else.itil.qa.historical-procedure-final-catalog.v1",
+  "private_catalog_sha256": "5d552674a140527108a91da6c9be3210de20ba92a51c7c012053be11ab29ffd3",
+  "training_cases": 300,
+  "training_modules": 74,
+  "structured_history_notes": 45,
+  "unique_module_patterns": 41,
+  "fourth_cohort": {
+    "schema": "else.itil.qa.historical-procedure-holdout-score.v1",
+    "heldout_cases": 100,
+    "cohort_training_source_cases": 300,
+    "candidate_hints_available": 51,
+    "holdout_with_sql_mentions": 26,
+    "both_pattern_sets_nonempty": 18,
+    "exact_kind_table_field_overlap": 9,
+    "historical_sql_mention_no_prior_hint": 8,
+    "historical_sql_mention_different_prior_hint": 9,
+    "matched_root_causes_verified": 0,
+    "fixes_executed": 0,
+    "meanings": {
+      "candidate_hints_available": "Earlier notes in the same module mention structured procedures",
+      "exact_kind_table_field_overlap": "Same kind/table/field set appears in holdout historical note; NOT causality or executed action"
+    },
+    "private_ticket_text_exported": false,
+    "source_receipt_sha256": "19613d2dd26d6e426e21ac003a7416945c4bfb55e85e0c13a9e90cd2691dec24",
+    "gold_receipt_sha256": "2265215389c05f70c887ccade5dfcbcc73776526ba14cd8b938ba22dbaffb8b8",
+    "catalog_sha256": "5d552674a140527108a91da6c9be3210de20ba92a51c7c012053be11ab29ffd3"
+  },
+  "fifth_cohort": {
+    "exact_overlap": 9,
+    "historical_sql_mentioned": 27,
+    "prior_available": 43,
+    "rows": 100
+  },
+  "no_autonomous_execution": true,
+  "current_case_gold_in_training": false,
+  "actual_repairs_verified": 0
+}
