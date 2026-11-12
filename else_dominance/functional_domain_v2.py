@@ -25,6 +25,24 @@ DOMAINS={
         ("Código, cantidad y liquidación afectados", "consistencia origen-destino")),
     "COMMERCIAL_CASH":("SIELSE/cobranzas y cajas",
         ("Caja o comprobante y movimiento afectados", "consistencia del saldo y traspaso")),
+    "COMMERCIAL_CUSTOMERS":("SIELSE/maestro y consultas de suministros",
+        ("Cliente o suministro y atributos consultados", "criterios de búsqueda y datos vigentes")),
+    "COMMERCIAL_CLAIMS":("SIELSE/reclamos y expedientes comerciales",
+        ("Código de reclamo, fecha y fase del procedimiento", "resultado de validación, admisión o reapertura")),
+    "COMMERCIAL_OPERATIONS":("SIELSE/incidencias operativas y regularización",
+        ("Incidencia operativa y estado de origen", "operación solicitada y trazabilidad de la corrección")),
+    "INFRA_BACKUP":("Servidores y respaldos corporativos",
+        ("Trabajo de respaldo, último éxito y antigüedad", "resultado de restauración o evidencia de copia")),
+    "PROCUREMENT":("SIELSE/solicitudes de adquisición",
+        ("Solicitud de adquisición y campos a modificar", "validez y estado posterior de la solicitud")),
+    "DISTRIBUTION_LOADABILITY":("SIELSE/distribución y cargabilidad",
+        ("Registro y zona de cargabilidad", "validaciones y resultado de procesamiento")),
+    "FLEET":("Control de programación y autorizaciones vehiculares",
+        ("Programación, fecha y autorización de salida", "regla y estado de aprobación de la modificación")),
+    "GIS_SUPPORT":("Servidores y aplicaciones SIG/GIS",
+        ("Servidor, visor, operación y ventana afectada", "latencia, servicio y error observados")),
+
+
     "COMMERCIAL_FISE":("SIELSE/FISE-FOSE",
         ("Solicitud o beneficiario, campo y valor actuales", "valor requerido y resultado posterior")),
     "SAP":("SAP/gestión empresarial",
@@ -189,6 +207,112 @@ def route(text:str,*,verified_hands:Mapping[str,str]|None=None)->dict:
     }
 
 
+def _module_semantic_domain(module:str,request:str)->tuple[str|None,str]:
+    """Small, generic corporate-module semantics.
+
+    A name is a routing hint, not an explanation of a failure. The requested
+    operation must be sufficiently informative unless the module itself names
+    a unique functional domain. No private incident labels are encoded here.
+    """
+    module=normalize(module)
+    request=normalize(request)
+    if re.search(r"\barqueos?\b|\barqueo\b",module):
+        return "COMMERCIAL_CASH","MODULE_ARQUEO_CASH_RECONCILIATION"
+    if re.search(r"\b(?:digitacion de cobranza|comprobantes)\b",module):
+        return "COMMERCIAL_CASH","MODULE_CASH_OR_RECEIPT"
+    if re.search(r"\b(?:valorizacion de contratista|cartas? fianza)\b",module):
+        return "CONTRACT_VALUATION","MODULE_CONTRACT_VALUATION"
+    if re.search(r"\b(?:pedido almacen|stock de almacen)\b",module):
+        return "COMMERCIAL_MATERIALS","MODULE_INVENTORY_AND_STOCK"
+    if re.search(r"\blistado de suministros\b",module):
+        return "COMMERCIAL_CUSTOMERS","MODULE_SUPPLY_DIRECTORY"
+    if re.search(r"\badministrador de clientes\b",module):
+        if re.search(r"\b(?:deuda|recibo|boleta|factura|tarifa|cobro|monto|pago)\b",request):
+            return "COMMERCIAL_BILLING","CUSTOMER_MODULE_BILLING_REQUEST"
+        return "COMMERCIAL_CUSTOMERS","MODULE_CUSTOMER_MASTER"
+    if re.search(r"\breclamos?\b",module):
+        return "COMMERCIAL_CLAIMS","MODULE_COMMERCIAL_CLAIMS"
+    if re.search(r"\bincidentes operativos\b",module):
+        return "COMMERCIAL_OPERATIONS","MODULE_OPERATIONAL_INCIDENT"
+    if re.search(r"\b(?:ordenes de trabajo|reinstalacion de suministro)\b",module):
+        return "COMMERCIAL_OT","MODULE_WORK_ORDERS"
+    if re.search(r"\bfacturar\b",module):
+        return "COMMERCIAL_BILLING","MODULE_BILLING"
+    if re.search(r"\b(?:movimientos bancarios|depositoscom)\b",module):
+        return "COMMERCIAL_CASH","BANKING_CASH_RECONCILIATION"
+    if re.search(r"\badministracion de usuarios\b",module):
+        return "IAM","USER_ADMINISTRATION_MODULE"
+    if re.search(r"\bprogramacion vehicular\b",module):
+        return "FLEET","FLEET_AUTHORIZATION_MODULE"
+    if re.search(r"\btrabajos de campo\b",module):
+        return "COMMERCIAL_OT","FIELD_WORK_OPERATIONS"
+    if re.search(r"\bregistro de viaticos\b",module):
+        return "HR","TRAVEL_EXPENSES_WORKFLOW"
+    if re.search(r"\blistado de trabajadores\b",module):
+        if re.search(r"\b(?:correo|notificaciones|email)\b",request):
+            return "EMAIL","WORKER_NOTIFICATION_EMAIL"
+        return "HR","EMPLOYEE_DIRECTORY"
+    if re.search(r"\bdise.?o e ingenieria\b",module) and re.search(r"\b(?:arcgis|visor|mapa|servidor)\b",request):
+        return "GIS_SUPPORT","GIS_SERVER_APPLICATION_REQUEST"
+    if module.strip()=="sielse web" and re.search(r"\b(?:papeleta|permiso particular|vacaciones|asistencia|salida de personal)\b",request):
+        return "HR","STAFF_PERMISSIONS_IN_SIELSE_WEB"
+    if re.search(r"\bsielse \(instalacion, configuracion\)",module):
+        if re.search(r"\b(?:red|unidad de red|compartida|conexion|ruta|carpeta)\b",request):
+            return "ENDPOINT_NETWORK","DESKTOP_NETWORK_MOUNT_REQUEST"
+        if re.search(r"\b(?:equipo|pantalla|letras|botoneras|calificacion de atencion|aplicativo|pc|maquina)\b",request):
+            return "ENDPOINT_SOFTWARE","DESKTOP_SOFTWARE_OR_DISPLAY_REQUEST"
+    if re.search(r"\bsolicitud de adquisicion\b",module):
+        return "PROCUREMENT","MODULE_PROCUREMENT_REQUEST"
+    if re.search(r"\bpadron clientes\b",module):
+        return "COMMERCIAL_CUSTOMERS","MODULE_COMMERCIAL_CUSTOMER_REGISTRY"
+    if re.search(r"\bcargabilidad\b",module):
+        return "DISTRIBUTION_LOADABILITY","MODULE_LOADABILITY"
+    if re.search(r"\b(?:consistencia de lecturas|lecturas? ap|lecturas de alumbrado|toma de lecturas|proyeccion de consumo)\b",module):
+        return "METER_DATA","MODULE_METER_READING"
+    if re.search(r"\bimportar extractos bancarios\b",module):
+        return "COMMERCIAL_CASH","MODULE_BANK_STATEMENTS"
+    if re.search(r"\bcontratistas\b",module):
+        if re.search(r"\b(?:usuario|login|acceso|perfil|rol|permiso|deshabilitar|anular)\b",request):
+            return "IAM","CONTRACTOR_USER_ACCESS_REQUEST"
+    if re.search(r"\btrabajador comercial\b",module):
+        if re.search(r"\b(?:usuario|login|acceso|perfil|rol|codigo)\b",request):
+            return "IAM","COMMERCIAL_WORKER_IDENTITY_REQUEST"
+    if module.strip()=="telefonia":
+        return "TELECOM","MODULE_TELEPHONY"
+    if module.strip()=="ofimatica":
+        if re.search(r"\b(?:instalar|instalacion|configura|firma digital|word|excel|office)\b",request):
+            return "ENDPOINT_SOFTWARE","OFFICE_SOFTWARE_REQUEST"
+    if module.strip()=="estacion de trabajo":
+        if re.search(r"\b(?:camara|grabacion|video|videovigilancia)\b",request):
+            return "SECURITY_VIDEO","WORKSTATION_REFERENCES_CAMERA_RETRIEVAL"
+        if re.search(r"\b(?:remot\w*|vpn|habilitar equipo|habilitar maquina|acceso remoto|carpeta compartida|unidad [a-z]|unidad de red)\b",request):
+            return "ENDPOINT_NETWORK","WORKSTATION_REMOTE_ACCESS_REQUEST"
+        if re.search(r"\b(?:subir|adjuntar|archivo|descargar|pantalla)\b",request):
+            return "ENDPOINT_SOFTWARE","WORKSTATION_APPLICATION_ERROR"
+    if module.strip()=="dominio":
+        if re.search(r"\b(?:correo|email|buzon)\b",request):
+            return "EMAIL","DOMAIN_EMAIL_ACCOUNT_REQUEST"
+        if re.search(r"\b(?:acceso|maquina|usuario|login|bloqueo|perfil)\b",request):
+            return "IAM","DOMAIN_USER_OR_DEVICE_ACCOUNT_REQUEST"
+    if module.strip()=="correo":
+        return "EMAIL","MODULE_EMAIL"
+    if module.strip()=="impresoras":
+        return "ENDPOINT_PRINT","MODULE_PRINT"
+    if module.strip()=="servidor" and re.search(r"\b(?:backup|respald\w*|copias de seguridad|restauracion)\b",request):
+        return "INFRA_BACKUP","SERVER_BACKUP_REQUEST"
+    # Generic SIELSE / network modules need a functional symptom to route.
+    if module.strip() in {"sielse","red"}:
+        if re.search(r"\b(?:lecturas?|medidores?|consistencia|recorrido)\b",request) and re.search(r"\b(?:monitoreo|proces|proyeccion|lectura|sed)\b",request):
+            return "METER_DATA","SIELSE_METER_READINGS_REQUEST"
+        if re.search(r"\b(?:bloquead[oa]|desbloque|credencial|contrasena|password|cuenta inactiv|vigencia de usuario|habilitar usuario|permiso|acceso a maquina)\b",request):
+            return "IAM","SIELSE_ACCOUNT_STATE_SYMPTOM"
+        if re.search(r"\b(?:correo|email|e-mail|buzon)\b",request) and not re.search(r"\b(?:no puedo ingresar al sielse|inicio de sesion)\b",request):
+            return "EMAIL","SIELSE_INCIDENTAL_EMAIL_REQUEST"
+        if (re.search(r"\b(?:no puedo ingresar|no acced|error al iniciar|no abre|no funciona|no carga)\b",request)
+            and re.search(r"\b(?:sielse|aplicativo|aplicacion|cliente de escritorio|sesion)\b",request)):
+            return "ENDPOINT_SOFTWARE","SIELSE_CLIENT_ACCESS_SYMPTOM"
+    return None,""
+
 def route_with_verified_module(text:str, *, module_name:str,
                                verified_hands:Mapping[str,str]|None=None)->dict:
     """Use a separately matched ITIL module name to improve *routing only*.
@@ -231,6 +355,14 @@ def route_with_verified_module(text:str, *, module_name:str,
               and re.search(r"\b(?:habilitar|habilite|aprobacion|aprobar|permisos?)\b",raw)):
             target="IAM"
             basis="DELEGATED_APPROVAL_PERMISSION_REQUEST"
+        else:
+            # 2026 corporate-module ontology. Only maps the meaning of the
+            # independently verified module name + request, never ticket IDs,
+            # historic answers, or an alleged current system state.
+            inferred,module_reason=_module_semantic_domain(module,raw)
+            if inferred:
+                target=inferred
+                basis=module_reason
     if target not in DOMAINS:
         raise ValueError("MODULE_ROUTE_NOT_IN_DOMAINS")
     name,required=DOMAINS[target]
