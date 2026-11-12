@@ -2,7 +2,7 @@
 
 **Corte de evaluación:** 12 de noviembre de 2026. **Rango SQL:** `FechaSolicitud >= '2026-06-01' AND FechaSolicitud < '2026-07-01'`. **Fuente real:** ELSE70 / `dbITIL_D.dbo.taIncidente`, acceso QA de solo lectura mediante ELSE62 y SIELSEAccesoDatos 3.24.11.27.
 
-**Estado de este informe:** contraste estructurado del mes COMPLETO, con una muestra adicional incompleta de planes Qwen 9B. Las cifras son indicadores de concordancia documental y no de reparaciones ejecutadas.
+**Estado de este informe:** contraste estructurado del mes COMPLETO y 100/100 planes ciegos Qwen 9B evaluados por un modelo independiente.  Las cifras son indicadores de concordancia documental y no de reparaciones ejecutadas.
 
 ## 1. Integridad de fuentes y cobertura
 
@@ -62,30 +62,34 @@ El corpus ampliado de 500 provino de **cinco cohortes previas de mayo**, cada un
 
 **Lectura correcta de los resultados:** hay **72 coincidencias exactas documentales**, no cero. No obstante, eso no demuestra que la SQL citada se ejecutase, ni que fuera apropiada para el objeto exacto, ni que se haya reparado el incidente. Las 95 coincidencias de tabla/operación también incluyen casos cuya lista de campos difiere.
 
-## 5. Experimento ciego Qwen 9B — estado comprobado
+## 5. Experimento ciego Qwen 9B — **100/100 completado**
 
-Se preseleccionaron **100 posiciones sistemáticas distribuidas entre el primero y el último incidente de junio**, no solamente los últimos cien. El autor Qwen 9B recibió únicamente la solicitud anonimizada y el nombre de módulo verificado; **no recibió el histórico de solución**. La validación local del plan exige comprobaciones discriminantes, estado `NOT_READ`, ejecución `NOT_EXECUTED` y citas ancladas a la solicitud.
+Se preseleccionaron **100 posiciones sistemáticas** entre el primero y el último incidente de junio, no únicamente los últimos 100. El modelo autor Qwen3.5 9B recibió **solo solicitud y módulo verificados, nunca la nota histórica**, y fue sometido a validación determinista de cada borrador. Un segundo modelo, Qwen3.5 4B, recibió los 100 resultados ciegos ya sellados y las notas históricas de sus mismos casos, con citas literales que el evaluador verificó por pertenencia a su nota original.
 
-Al último estado verificable del registro privado, **85 de las 100 posiciones** tenían resultado:
-
-| Salida de Qwen 9B, en 85 casos comprobados | Casos |
+| Resultado comprobado | Número |
 |---|---:|
-| `FUNCTIONAL_DRAFT_CONTRACT_PASS` | **60** |
-| `CLARIFICATION_REQUIRED` | **19** |
-| `FUNCTIONAL_DRAFT_REJECTED` | **6** |
-| **Total de planes/abstenciones procesados** | **85** |
+| Muestra completada por Qwen 9B | **100/100** |
+| Borrador diagnóstico conforme al contrato | **72** |
+| Aclaración requerida, sin plan suficiente | **22** |
+| Borrador rechazado | **6** |
+| Juicios Qwen 4B con esquema y cita aceptados | **82** |
+| Juicios del modelo independiente rechazados | **18** |
+| Concordancia parcial del proceso histórico (modelo juez, provisional) | **26** |
+| Concordancia específica de mecanismo (modelo juez, provisional) | **5** |
 
-**No se han contabilizado los 15 restantes ni se ha completado en este informe un juicio independiente Qwen4B para todos esos 85 planes.** Por tanto, las 60 aprobaciones son **validez de contrato de un borrador diagnóstico**, no 60 coincidencias históricas ni 60 soluciones.
+**Control reforzado de las cinco coincidencias específicas:** cuatro están fundamentadas en **SQL solo escrito** en el histórico y ninguna acredita ejecución de ese SQL. La quinta no dispone de verificación empresarial independiente. No son cinco reparaciones. La aprobación de 72 borradores se refiere únicamente a **conformidad del plan de diagnóstico con el contrato**, no a precisión histórica ni a intervención efectuada.
 
-La última ejecución se interrumpió al perderse la conexión con el servidor. Se conserva el diario individual para reanudar sin duplicar posiciones, pero **no se certifica como completa la muestra de 100**.
+De las 82 decisiones del evaluador aceptadas, 74 etiquetaron la nota como cierre genérico, siete como acción específica y una como vacía o no interpretable. Las 18 respuestas rechazadas **no se contabilizan como aciertos**.
+
+El puntaje reproducible está en \`data/2026_june_all_1621_qwen100_blind_scorecard.json\`. Los planes completos, las citas históricas y las respuestas de los jueces permanecen exclusivamente en el servidor privado.
 
 ## 6. Hallazgos y prioridades
 
 1. El enrutador puede asignar dominio a **1.318/1.621** solicitudes, pero hay 303 sin un sistema bien identificado. Se necesita mejorar esa cobertura sin inventar contexto.
 2. Las **72 coincidencias exactas** con menciones de SQL histórico son una señal de transferencia desde mayo, pero el salto de 300 a 500 antecedentes solo aporta tres coincidencias adicionales. Mejorar la representación de mecanismo y la vinculación al objeto parece más importante que agregar indiscriminadamente más notas.
 3. **462** históricos contienen referencias SQL estructuradas, pero su calidad como evidencia de intervención es heterogénea. Para demostrar reparación hacen falta contrato de aplicación, objeto exacto, estados previos y posteriores y comprobación independiente de ejecución.
-4. Una evaluación independiente de los planes contra el histórico debe distinguir coincidencia de mecanismo, coincidencia parcial de proceso, nota genérica, referencia SQL no ejecutada y caso no evaluable. No se debe convertir un juicio de modelo en verdad de negocio.
+4. La evaluación independiente de los planes contra el histórico distingue coincidencia de mecanismo, coincidencia parcial de proceso, nota genérica, referencia SQL no ejecutada y caso no evaluable. No se debe convertir un juicio de modelo en verdad de negocio.
 
-**Situación del código:** los lectores y evaluadores específicos de junio quedaron preparados y ejecutados en el servidor QA, pero, por interrupción de la conexión, no se incorporan como código fuente en esta PR de documentación. El informe no afirma que exista CI del nuevo lector ni que la batería Qwen de 100 se haya terminado.
+**Implementación reproducible en esta PR:** \`qa/june2026/JuneAllRead.cs\` y su \`.csproj\` para las dos extracciones SQL firmadas; \`evaluate_all_1621.py\` para el contraste de 100 % de los casos; \`evaluate_may500_transfer.py\` para transferibilidad temporal sin información posterior; \`run_blind_qwen_sample.py\` para la muestra ciega de 100; \`judge_blind_100_against_gold.py\` y \`score_qwen100_vs_history.py\` para el juicio independiente; y \`verify_private_june_adversarial.py\` para manipulaciones de recibos. Los datos privados no están en GitHub. Se ejecutaron **526 pruebas PASS, 24 omitidas, 125 subpruebas PASS**, más **6 ataques reales bloqueados**; lector .NET8 con **0 warnings y 0 errores**.
 
-**Conclusión:** contraste estructurado **1.621/1.621**, con **72 concordancias exactas de mecanismo SQL documentado** al entrenar con mayo; **0 reparaciones empresariales ejecutadas por el especialista y certificadas**. Esas cantidades miden aspectos distintos y deben informarse por separado.
+**Conclusión:** contraste estructurado **1.621/1.621**, con **72 concordancias exactas de mecanismo SQL documentado** al utilizar mayo, y **100/100 propuestas/abstenciones ciegas Qwen 9B**, con **5 coincidencias específicas provisionales señaladas por el juez**. **0 reparaciones empresariales ejecutadas por el especialista y certificadas**. Estas medidas no deben confundirse.
