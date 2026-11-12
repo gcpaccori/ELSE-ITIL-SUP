@@ -32,13 +32,14 @@ class SourceCatalog:
                 and (not right or right in (r['left'],r['right']))]
 
 class EvidenceTools:
-    def __init__(self, memory, sources: SourceCatalog, live_adapter=None, *, qa_catalog=None, preventive_50=None, historical_patterns=None):
+    def __init__(self, memory, sources: SourceCatalog, live_adapter=None, *, qa_catalog=None, preventive_50=None, historical_patterns=None, historical_mechanisms=None):
         self.memory=memory
         self.sources=sources
         self.live_adapter=live_adapter
         self.qa_catalog=qa_catalog
         self.preventive_50=preventive_50
         self.historical_patterns=historical_patterns
+        self.historical_mechanisms=historical_mechanisms
     @property
     def descriptions(self):
         return {
@@ -49,7 +50,8 @@ class EvidenceTools:
           'query_live':'Execute ONLY a registered, parameterized, read-only corporate query using an authorized connector. Returns denial otherwise.',
           'inspect_qa_connection':'Verify a prior signed Windows QA connectivity probe for one registered source. This is NOT a ticket-specific or fresh live read.',
           'inspect_preventive50_source':'List the original primary/secondary metrics and observed SQL candidate tables for one of the 50 preventive rules. Never a prediction PASS.',
-          'inspect_historical_procedures':'Read only aggregate procedure mentions documented in earlier corporate historical tickets of the SAME module. Never case-specific evidence or proof a SQL change ran. Exact args: module_code.'}
+          'inspect_historical_procedures':'Prior historical SQL references for the exact incident module. If request text is available, suppress unanchored hints. NOT a verified cause. Exact args: module_code.',
+          'inspect_historical_mechanisms':'Suggest only explicit-request-anchored mechanism mentions from prior signed historical notes of the same module. NOT performed fixes. Exact args: module_code.'}
 
     def execute(self, name: str, args: dict, context: dict) -> dict:
         if name=='search_precedents':
@@ -80,7 +82,27 @@ class EvidenceTools:
                 or type(module) is not str
                 or module!=str(context['module_code'])):
                 return {'status':'BLOCKED','error':'HISTORICAL_MODULE_SCOPE_VIOLATION'}
+            text=context.get('description')
+            if type(text) is str and text.strip():
+                try:return self.historical_patterns.describe_for_request(module,text)
+                except (ValueError,TypeError):
+                    return {'status':'BLOCKED','error':'HISTORICAL_REQUEST_INVALID'}
             return self.historical_patterns.describe(module)
+        if name=='inspect_historical_mechanisms':
+            if self.historical_mechanisms is None:
+                return {'status':'BLOCKED','error':'HISTORICAL_MECHANISM_INDEX_NOT_LOADED'}
+            if type(args) is not dict or set(args)!={'module_code'}:
+                return {'status':'BLOCKED','error':'MECHANISM_TOOL_ARGS_NOT_EXACT'}
+            module=args['module_code']
+            if (not context.get('module_code') or type(module) is not str
+                    or module!=str(context['module_code'])):
+                return {'status':'BLOCKED','error':'MECHANISM_MODULE_SCOPE_VIOLATION'}
+            text=context.get('description')
+            if type(text) is not str or not text.strip():
+                return {'status':'BLOCKED','error':'MECHANISM_REQUEST_CONTEXT_REQUIRED'}
+            try:return self.historical_mechanisms.suggest(module,text)
+            except (ValueError,TypeError):
+                return {'status':'BLOCKED','error':'MECHANISM_REQUEST_INVALID'}
         if name=='inspect_preventive50_source':
             if self.preventive_50 is None:
                 return {'status':'BLOCKED','error':'PREVENTIVE_50_CONTRACT_NOT_LOADED'}
