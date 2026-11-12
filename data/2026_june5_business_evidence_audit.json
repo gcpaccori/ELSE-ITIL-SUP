@@ -1,0 +1,52 @@
+{
+  "schema": "else.itil.qa.2026-june5-business-beforeafter-evidence.v1",
+  "purpose": "RECLASSIFY_PROVISIONAL_QWEN_JUDGE_MATCHES_AGAINST_EXACT_BUSINESS_QA",
+  "historical_period": "2026-06",
+  "source": "ELSE62/ELSE70",
+  "qa_itil": "dbITIL_D",
+  "qa_business": "dbComercial001_D",
+  "manifest_receipt_sha256": "6dfcb0001c48da97b5d3a92affd7b7b8f17e6856bcbb579e72ddb61d26977fa9",
+  "metadata_receipt_sha256": "8527e0fe7ed364b9806c4d1c54cba17c68ecdc0490967dac29c5f9c2ed95bd4b",
+  "business_snapshot_receipt_sha256": "c11c59c344d51fd649e84f3a397a1496dadaafd37b3222b8ec10530468256ff7",
+  "independent_june_request_receipt_sha256": "b1303359fb72aee6720fba660555fe6a8332cb1af26232239d19650061dab5fd",
+  "independent_june_history_receipt_sha256": "cf071c227432996c50a328e03703c28b851ce883235b46f0bfb60f979398ae10",
+  "business_tables_have_records_without_relevant_exact_case": true,
+  "target_tables_non_temporal": true,
+  "audit_table_names_verified": [
+    "dbo.taOrdenTrabajoAuditoriaCambio",
+    "dbo.taOrdenTrabajo_ModificacionIN"
+  ],
+  "author_model": "Qwen3.5-9B",
+  "independent_judge": "Qwen3.5-4B",
+  "judge_initial_provisional_same_mechanism": 5,
+  "object_alignment_is_conservative_posthoc_review_not_human_ground_truth": true,
+  "targeted_types": {
+    "CAMPAIGN": 1,
+    "OT": 3,
+    "PADRON": 1
+  },
+  "counts": {
+    "audited_target_field_transition_in_june": 0,
+    "business_row_ambiguous": 1,
+    "business_row_not_found": 4,
+    "cases": 5,
+    "cases_with_audit_record": 0,
+    "historical_note_identifier_present": 4,
+    "historical_only_unconfirmed_identifier": 1,
+    "historical_target_matched_independent_audit": 0,
+    "identifier_in_original_request": 4,
+    "request_and_note_same_id": 3,
+    "unique_business_row": 0
+  },
+  "object_review": {
+    "BUSINESS_OBJECT_MISMATCH": 1,
+    "OBJECT_AND_OBSERVABLE_ALIGNED_ONLY": 3,
+    "REQUIRED_CAUSAL_TEST_MISSING": 1
+  },
+  "historical_sql_not_execution_proof": true,
+  "current_snapshot_does_not_establish_state_in_june": true,
+  "no_unique_object_no_state_before_after": true,
+  "historically_certified_changes": 0,
+  "certified_business_repairs": 0,
+  "business_writes_executed": 0
+}
