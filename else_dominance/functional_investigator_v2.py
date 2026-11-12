@@ -133,7 +133,7 @@ def frozen_fact_quotes(text:str)->list[str]:
         if len(eligible)==3:break
     return eligible
 
-def run_case(row:dict, *,max_attempts=2,verified_module_name=None)->dict:
+def run_case(row:dict, *,max_attempts=2,verified_module_name=None,historical_pattern_hints=None)->dict:
     if type(row) is not dict or not all(
          key in row for key in ("ticket_sha256","incident_text_redacted")):
         raise ValueError("REDACTED_CASE_REQUIRED")
@@ -143,6 +143,31 @@ def run_case(row:dict, *,max_attempts=2,verified_module_name=None)->dict:
     text=row["incident_text_redacted"]
     if type(text) is not str or not 1<=len(text)<=3500:
         raise ValueError("REQUEST_TEXT_INVALID")
+    safe_prior=None
+    if historical_pattern_hints is not None:
+        if verified_module_name is None:
+            raise ValueError("HISTORICAL_PATTERN_VERIFIED_MODULE_REQUIRED")
+        if type(historical_pattern_hints) is not list or len(historical_pattern_hints)>5:
+            raise ValueError("HISTORICAL_PATTERN_HINTS_INVALID")
+        safe_prior=[]
+        from .historical_procedures import normalize_ref
+        for hint in historical_pattern_hints:
+            if (type(hint) is not dict
+                or hint.get("kind") not in (
+                    "UPDATE_MENTIONED","DELETE_MENTIONED","PROCEDURE_CALL_MENTIONED")
+                or type(hint.get("fields")) is not list
+                or len(hint["fields"])>12
+                or not normalize_ref(hint.get("table"))
+                or any(not normalize_ref(x) for x in hint["fields"])
+                or hint.get("historical_note_only") is not True
+                or hint.get("execution_confirmed") is not False
+                or type(hint.get("count")) is not int
+                or not 1<=hint["count"]<=300):
+                raise ValueError("HISTORICAL_PATTERN_HINT_NOT_VERIFIED")
+            safe_prior.append({
+                "kind":hint["kind"],"table":hint["table"],
+                "fields":list(hint["fields"]),"count":hint["count"],
+                "historical_note_only":True,"execution_confirmed":False})
     if verified_module_name is not None:
         decision=route_with_verified_module(text,module_name=verified_module_name)
     else:
@@ -159,6 +184,8 @@ def run_case(row:dict, *,max_attempts=2,verified_module_name=None)->dict:
        "live_domain_evidence_verified":False,
        "executed":False,"repair_certified":False,
        "root_cause_certified":False,
+       "prior_history_pattern_count":len(safe_prior or []),
+       "prior_history_not_current_incident_solution":True,
     }
     if decision["domain"]=="UNKNOWN" or len(text.strip())<35:
         result.update({
@@ -169,7 +196,7 @@ def run_case(row:dict, *,max_attempts=2,verified_module_name=None)->dict:
             "quality":{"accepted":False,"functionally_actionable":False,
                        "flags":["DOMAIN_OR_INPUT_UNDETERMINED"]}})
         return result
-    user=json.dumps({
+    model_input={
         "ticket_sha256_prefix":sha[:12],
         "ticket_text_redacted_untrusted":text,
         "allowed_exact_fact_quotes":frozen_fact_quotes(text),
@@ -181,7 +208,15 @@ def run_case(row:dict, *,max_attempts=2,verified_module_name=None)->dict:
         "only_verified_historical_request_source":"ITIL.taIncidente",
         "target_exact_schema":SCHEMA,
         "no_current_business_data":True,
-    },ensure_ascii=False)
+    }
+    if safe_prior:
+        model_input["earlier_same_module_historical_pattern_mentions"]=safe_prior
+        model_input["historical_hints_warning"]=(
+            "Estas referencias provienen de NOTAS de casos ANTERIORES del mismo módulo, "
+            "pueden ser SQL comentado o no ejecutado. No describen el estado ni la "
+            "solución de este incidente. Úsalas solo como hipótesis comprobables; "
+            "ningún cambio está autorizado y no las cites como observaciones.")
+    user=json.dumps(model_input,ensure_ascii=False)
     messages=[{"role":"system","content":SYSTEM},
               {"role":"user","content":user}]
     last_flags=[]
