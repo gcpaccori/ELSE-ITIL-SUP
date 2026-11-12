@@ -44,6 +44,12 @@ explícito en el texto de un ticket firmado y comprueba SU fila en
 dbo.taOrdenTrabajo (Distribución QA). NO certifica una llave foránea
 ITIL↔OT ni que esa OT provoque el ticket. Cero filas significa solo
 cero resultados en la tabla consultada; nunca ausencia global.
+inspect_itil_lifecycle presenta registros de derivaciones obtenidos por
+igualdad exacta de CodigoIncidente dentro de ITIL. La igualdad de claves NO
+es FK declarada; un codigo de tipo de derivacion NO prueba que se escaló,
+se corrigió el problema ni se ejecutó una reparación. Las fechas de esos
+registros no llevan zona horaria certificada. No interpretes su significado
+funcional sin un diccionario de códigos validado.
 Los patrones de procedimientos históricos provienen de notas de otros incidentes;
 pueden describir sentencias SQL comentadas o no ejecutadas. Los nombres de campos
 solo son hipótesis cuando la solicitud menciona directamente el objeto; si la
@@ -55,7 +61,7 @@ respondió a dos SELECT tipados: NO es un recibo para el incidente que investiga
 ni autoriza diagnosticar su estado, su causa o su reparación.
 Antes de responder como hecho, verifica columnas, disponibilidad temporal y permisos por catálogo. Si acceso es DENIED no reintentes ni asumas que consultaste. No produzcas SQL libre como acción ejecutable; pide herramientas registradas.
 Responde SOLAMENTE JSON válido (sin markdown), una de dos formas:
-{"type":"tool","name":"search_precedents|find_sources|describe_source|inspect_relation|inspect_qa_connection|inspect_preventive50_source|inspect_historical_procedures|inspect_historical_mechanisms|inspect_case_qa_state|inspect_reported_ot_qa_state|query_live","args":{...}}
+{"type":"tool","name":"search_precedents|find_sources|describe_source|inspect_relation|inspect_qa_connection|inspect_preventive50_source|inspect_historical_procedures|inspect_historical_mechanisms|inspect_case_qa_state|inspect_reported_ot_qa_state|inspect_itil_lifecycle|query_live","args":{...}}
 o
 {"type":"final","status":"PLAN_PROPUESTO|INVESTIGACION_PENDIENTE|NO_SUSTENTADO",
 "system_and_operation":"...", "problem":"...", "hypotheses":[{"cause":"...","evidence_refs":[],"test":"..."}],
@@ -196,6 +202,22 @@ class InvestigationAgent:
         ]
         clean['reported_ot_field_observations']=reported_ot_observations
         clean['reported_ot_field_evidence_available']=bool(reported_ot_observations)
+        lifecycle_observations=[
+            {'reference':k,'view':v['result']['view'],
+             'related_source':v['result']['related_source'],
+             'snapshot_at_utc':v['result']['snapshot_at_utc'],
+             'lifecycle_receipt_sha256':v['result']['lifecycle_receipt_sha256'],
+             'derivation_receipt_sha256':v['result']['derivation_receipt_sha256'],
+             'declared_fk_verified':False,
+             'causal_evidence_certified':False}
+            for k,v in evidence.items()
+            if (v['name']=='inspect_itil_lifecycle'
+                and v['result'].get('status')=='READ_VERIFIED_ITIL_NATIVE_KEY_QA'
+                and v['result'].get('provenance_verified') is True
+                and v['result'].get('declared_sql_foreign_key_verified') is False)
+        ]
+        clean['itil_lifecycle_key_equality_observed']=bool(lifecycle_observations)
+        clean['itil_lifecycle_observations']=lifecycle_observations
         clean['case_itil_field_observations']=case_snapshots
         clean['case_itil_metadata_verified']=bool(case_snapshots)
         clean['domain_business_state_verified']=False

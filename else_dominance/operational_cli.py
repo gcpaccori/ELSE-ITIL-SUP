@@ -44,13 +44,18 @@ def main():
     ot.add_argument('--module',required=True)
     ot.add_argument('--as-of',required=True)
     ot.add_argument('--field',required=True)
+    lc=sub.add_parser('qa-itil-lifecycle',help='Review signed native ITIL key-equality observations, not a declared FK')
+    lc.add_argument('--case-sha256',required=True)
+    lc.add_argument('--module',required=True)
+    lc.add_argument('--as-of',required=True)
+    lc.add_argument('--view',choices=('summary','derivation_events'),default='summary')
     qc=sub.add_parser('qa-connectivity',help='Verifica recibo HMAC de la última lectura real del trabajador Windows QA (no reejecuta SQL)')
     qc.add_argument('--profile',default='',help='ID fijo de perfil, o vacío para todas las once fuentes')
     s=sub.add_parser('stats')
     a=p.parse_args()
     catalog_path=os.getenv('TIC_CATALOG_PATH','')
     qa_root=os.getenv('TIC_QA_CONNECTIVITY_ROOT','')
-    if not catalog_path and a.task not in ('qa-connectivity','qa-50-coverage','qa-history-patterns','qa-history-mechanisms','qa-case-state','qa-reported-ot-state'):
+    if not catalog_path and a.task not in ('qa-connectivity','qa-50-coverage','qa-history-patterns','qa-history-mechanisms','qa-case-state','qa-reported-ot-state','qa-itil-lifecycle'):
         p.error('TIC_CATALOG_PATH debe apuntar a un catálogo privado verificado')
     catalog=SourceCatalog(catalog_path) if catalog_path else None
     if catalog is not None and catalog.data.get('public_demo_only') is True:
@@ -132,6 +137,29 @@ def main():
             p.error('Reported OT domain QA receipt could not be verified')
         print(json.dumps(output,ensure_ascii=False,indent=2))
         return
+    def load_itil_lifecycle():
+        private=os.getenv('TIC_QA_ITIL_LIFECYCLE_ROOT','')
+        month=os.getenv('TIC_QA_MONTHEND_ROOT','')
+        signing=os.getenv('TIC_QA_RECEIPT_SIGNING_KEY','')
+        if not (private and month and signing):
+            p.error('TIC_QA_ITIL_LIFECYCLE_ROOT, TIC_QA_MONTHEND_ROOT, TIC_QA_RECEIPT_SIGNING_KEY required')
+        from .qa_itil_native_lifecycle import VerifiedItILNativeLifecycle
+        return VerifiedItILNativeLifecycle(
+            private_root=Path(private),
+            reader_file=ROOT/'qa/lifecycle2026/CaseLifecycleRead.cs',
+            events_reader_file=ROOT/'qa/lifecycle2026/DerivationEventsRead.cs',
+            monthly_root=Path(month),
+            month_source_file=ROOT/'qa/monthend2026/MonthEnd100Read.cs',
+            key_file=Path(signing))
+    if a.task=='qa-itil-lifecycle':
+        try:
+            result=load_itil_lifecycle().inspect(
+                case_sha256=a.case_sha256,module_code=a.module,
+                as_of=a.as_of,view=a.view)
+        except (ValueError,OSError,KeyError,TypeError):
+            p.error('Native ITIL lifecycle receipts could not be verified')
+        print(json.dumps(result,ensure_ascii=False,indent=2))
+        return
     if a.task=='qa-connectivity':
         if qa_catalog is None:
             p.error('TIC_QA_CONNECTIVITY_ROOT requerido para recibos QA privados')
@@ -169,12 +197,16 @@ def main():
                 reported_ot=None
                 if os.getenv('TIC_QA_REPORTED_OT_ROOT'):
                     reported_ot=load_reported_ot()
+                lifecycle=None
+                if os.getenv('TIC_QA_ITIL_LIFECYCLE_ROOT'):
+                    lifecycle=load_itil_lifecycle()
                 agent=InvestigationAgent(llm,EvidenceTools(
                     memory,catalog,qa_catalog=qa_catalog,preventive_50=preventive,
                     historical_patterns=historical,
                     historical_mechanisms=mechanisms,
                     case_state=case_state,
-                    reported_ot=reported_ot),memory,max_steps=a.max_steps)
+                    reported_ot=reported_ot,
+                    itil_lifecycle=lifecycle),memory,max_steps=a.max_steps)
                 if a.task=='batch-2026':
                     result=HoldoutBatch(agent,ResolutionGate(catalog),now=datetime.now().strftime('%Y-%m-%dT%H:%M:%S')).run(a.jsonl,a.out,max_cases=a.limit)
                     print(json.dumps(result,ensure_ascii=False,indent=2));return
