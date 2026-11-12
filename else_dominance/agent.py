@@ -56,6 +56,13 @@ alias equivale a una base fisica, no derives CodigoSuministro o CodigoOrdenTraba
 desde CodigoIncidente, y no interpretes codigo 1/2/3 de derivacion sin
 diccionario corporativo verificado. La ausencia de un diccionario SQL
 consultable NO prueba el significado de estos codigos.
+inspect_june_business_route devuelve evidencia QA para cinco incidentes
+firmados de junio de 2026. CodigoEmpresa del ITIL no tiene que corresponder
+a la empresa/sucursal de negocio. La conexion corporativa Comercial 1, 4 y
+100 fue verificada por separado. Una OT en dbGerencial_D no prueba que exista
+en la base transaccional; valores distintos entre fuentes requieren abstencion.
+Una lectura actual (noviembre) no es un estado historico de junio ni prueba
+un UPDATE en la nota. Jamás declares reparado un caso por esa lectura.
 Los patrones de procedimientos históricos provienen de notas de otros incidentes;
 pueden describir sentencias SQL comentadas o no ejecutadas. Los nombres de campos
 solo son hipótesis cuando la solicitud menciona directamente el objeto; si la
@@ -67,7 +74,7 @@ respondió a dos SELECT tipados: NO es un recibo para el incidente que investiga
 ni autoriza diagnosticar su estado, su causa o su reparación.
 Antes de responder como hecho, verifica columnas, disponibilidad temporal y permisos por catálogo. Si acceso es DENIED no reintentes ni asumas que consultaste. No produzcas SQL libre como acción ejecutable; pide herramientas registradas.
 Responde SOLAMENTE JSON válido (sin markdown), una de dos formas:
-{"type":"tool","name":"search_precedents|find_sources|describe_source|inspect_relation|inspect_qa_connection|inspect_preventive50_source|inspect_historical_procedures|inspect_historical_mechanisms|inspect_case_qa_state|inspect_reported_ot_qa_state|inspect_itil_lifecycle|inspect_itil_application_contract|query_live","args":{...}}
+{"type":"tool","name":"search_precedents|find_sources|describe_source|inspect_relation|inspect_qa_connection|inspect_preventive50_source|inspect_historical_procedures|inspect_historical_mechanisms|inspect_case_qa_state|inspect_reported_ot_qa_state|inspect_itil_lifecycle|inspect_itil_application_contract|inspect_june_business_route|query_live","args":{...}}
 o
 {"type":"final","status":"PLAN_PROPUESTO|INVESTIGACION_PENDIENTE|NO_SUSTENTADO",
 "system_and_operation":"...", "problem":"...", "hypotheses":[{"cause":"...","evidence_refs":[],"test":"..."}],
@@ -239,6 +246,20 @@ class InvestigationAgent:
         clean['itil_module_route_observed']=bool(route_observations)
         clean['itil_module_route_observations']=route_observations
         clean['derivation_type_semantics_certified']=False
+        june_business_observations=[
+            {'reference':k,
+             'route_status':v['result']['status'],
+             'verified_company_route':v['result']['verified_company_route'],
+             'current_qa_only':True,
+             'causal_fix_proven':False,
+             'source_receipt_sha256':v['result']['source_receipt_sha256']}
+            for k,v in evidence.items()
+            if (v['name']=='inspect_june_business_route'
+                and v['result'].get('scope')=='SIGNED_FIVE_JUNE_2026_QA_ONLY'
+                and v['result'].get('repair_certified') is False)
+        ]
+        clean['june_business_route_evidence_available']=bool(june_business_observations)
+        clean['june_business_route_observations']=june_business_observations
         clean['case_itil_field_observations']=case_snapshots
         clean['case_itil_metadata_verified']=bool(case_snapshots)
         clean['domain_business_state_verified']=False

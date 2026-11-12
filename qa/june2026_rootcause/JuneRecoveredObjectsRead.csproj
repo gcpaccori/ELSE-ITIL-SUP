@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+<PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework>
+<Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
+<EnableDefaultCompileItems>false</EnableDefaultCompileItems></PropertyGroup>
+<ItemGroup><PackageReference Include="SIELSEAccesoDatos" Version="[3.24.11.27]"/><Compile Include="JuneRecoveredObjectsRead.cs"/></ItemGroup>
+</Project>
