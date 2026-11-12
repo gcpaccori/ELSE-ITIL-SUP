@@ -1,0 +1,133 @@
+{
+  "schema": "else.itil.qa.2026-case-state-90-evidence-gate-summary.v1",
+  "qa_source": "ELSE70/dbITIL_D/dbo.taIncidente",
+  "case_state_receipt_sha256": "36e194abc9b05906e459f3fa5ecbff81b5e7bd12067b7c7c94da76f2dd755423",
+  "case_count": 90,
+  "months": 9,
+  "signed_source_month_receipts": 9,
+  "case_field_proof_count": 720,
+  "itil_observation_not_business_domain_relation": true,
+  "case_state_observed_at_utc": "2026-11-12T16:58:06.613505+00:00",
+  "historical_gold_hidden_from_proposal_generator": true,
+  "model_author_plan_checks_not_assumed_executed": true,
+  "cause_certified": 0,
+  "business_repairs_certified": 0,
+  "business_domain_links_verified": 0,
+  "business_modifications": 0,
+  "months_summary": {
+    "2026-01": {
+      "author_CLARIFICATION_REQUIRED": 4,
+      "author_FUNCTIONAL_DRAFT_CONTRACT_PASS": 6,
+      "cases": 10,
+      "historical_procedures_verified_executed": 0,
+      "itil_fields_verified": 80,
+      "model_causal_repair_claims_certified": 0,
+      "model_checks_without_business_object_qa_proof": 12,
+      "model_proposed_checks": 12,
+      "verified_business_object_join": 0
+    },
+    "2026-02": {
+      "author_CLARIFICATION_REQUIRED": 2,
+      "author_FUNCTIONAL_DRAFT_CONTRACT_PASS": 7,
+      "author_FUNCTIONAL_DRAFT_REJECTED": 1,
+      "cases": 10,
+      "historical_procedures_verified_executed": 0,
+      "itil_fields_verified": 80,
+      "model_causal_repair_claims_certified": 0,
+      "model_checks_without_business_object_qa_proof": 14,
+      "model_proposed_checks": 14,
+      "verified_business_object_join": 0
+    },
+    "2026-03": {
+      "author_CLARIFICATION_REQUIRED": 1,
+      "author_FUNCTIONAL_DRAFT_CONTRACT_PASS": 9,
+      "cases": 10,
+      "historical_procedures_verified_executed": 0,
+      "itil_fields_verified": 80,
+      "model_causal_repair_claims_certified": 0,
+      "model_checks_without_business_object_qa_proof": 18,
+      "model_proposed_checks": 18,
+      "verified_business_object_join": 0
+    },
+    "2026-04": {
+      "author_CLARIFICATION_REQUIRED": 1,
+      "author_FUNCTIONAL_DRAFT_CONTRACT_PASS": 9,
+      "cases": 10,
+      "historical_procedures_verified_executed": 0,
+      "itil_fields_verified": 80,
+      "model_causal_repair_claims_certified": 0,
+      "model_checks_without_business_object_qa_proof": 18,
+      "model_proposed_checks": 18,
+      "verified_business_object_join": 0
+    },
+    "2026-05": {
+      "author_CLARIFICATION_REQUIRED": 1,
+      "author_FUNCTIONAL_DRAFT_CONTRACT_PASS": 7,
+      "author_FUNCTIONAL_DRAFT_REJECTED": 2,
+      "cases": 10,
+      "historical_procedures_verified_executed": 0,
+      "itil_fields_verified": 80,
+      "model_causal_repair_claims_certified": 0,
+      "model_checks_without_business_object_qa_proof": 14,
+      "model_proposed_checks": 14,
+      "verified_business_object_join": 0
+    },
+    "2026-06": {
+      "author_CLARIFICATION_REQUIRED": 5,
+      "author_FUNCTIONAL_DRAFT_CONTRACT_PASS": 5,
+      "cases": 10,
+      "historical_procedures_verified_executed": 0,
+      "itil_fields_verified": 80,
+      "model_causal_repair_claims_certified": 0,
+      "model_checks_without_business_object_qa_proof": 10,
+      "model_proposed_checks": 10,
+      "verified_business_object_join": 0
+    },
+    "2026-07": {
+      "author_CLARIFICATION_REQUIRED": 1,
+      "author_FUNCTIONAL_DRAFT_CONTRACT_PASS": 9,
+      "cases": 10,
+      "historical_procedures_verified_executed": 0,
+      "itil_fields_verified": 80,
+      "model_causal_repair_claims_certified": 0,
+      "model_checks_without_business_object_qa_proof": 18,
+      "model_proposed_checks": 18,
+      "verified_business_object_join": 0
+    },
+    "2026-08": {
+      "author_CLARIFICATION_REQUIRED": 1,
+      "author_FUNCTIONAL_DRAFT_CONTRACT_PASS": 7,
+      "author_FUNCTIONAL_DRAFT_REJECTED": 2,
+      "cases": 10,
+      "historical_procedures_verified_executed": 0,
+      "itil_fields_verified": 80,
+      "model_causal_repair_claims_certified": 0,
+      "model_checks_without_business_object_qa_proof": 14,
+      "model_proposed_checks": 14,
+      "verified_business_object_join": 0
+    },
+    "2026-09": {
+      "author_CLARIFICATION_REQUIRED": 1,
+      "author_FUNCTIONAL_DRAFT_CONTRACT_PASS": 9,
+      "cases": 10,
+      "historical_procedures_verified_executed": 0,
+      "itil_fields_verified": 80,
+      "model_causal_repair_claims_certified": 0,
+      "model_checks_without_business_object_qa_proof": 17,
+      "model_proposed_checks": 17,
+      "verified_business_object_join": 0
+    }
+  },
+  "totals": {
+    "author_CLARIFICATION_REQUIRED": 17,
+    "author_FUNCTIONAL_DRAFT_CONTRACT_PASS": 68,
+    "author_FUNCTIONAL_DRAFT_REJECTED": 5,
+    "cases": 90,
+    "historical_procedures_verified_executed": 0,
+    "itil_fields_verified": 720,
+    "model_causal_repair_claims_certified": 0,
+    "model_checks_without_business_object_qa_proof": 135,
+    "model_proposed_checks": 135,
+    "verified_business_object_join": 0
+  }
+}

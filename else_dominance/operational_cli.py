@@ -34,13 +34,23 @@ def main():
     mh=sub.add_parser('qa-history-mechanisms',help='Read-only explicit-request mechanism matches from earlier corporate notes')
     mh.add_argument('--module',required=True,help='Exact corporate module ID')
     mh.add_argument('--request',required=True,help='Request text (no historical solution)')
+    fs=sub.add_parser('qa-case-state',help='Read only one named field from case-bound signed ITIL QA receipt')
+    fs.add_argument('--case-sha256',required=True)
+    fs.add_argument('--module',required=True)
+    fs.add_argument('--as-of',required=True)
+    fs.add_argument('--field',required=True)
+    ot=sub.add_parser('qa-reported-ot-state',help='Inspect a reported OT in signed, case-linked distribution QA')
+    ot.add_argument('--case-sha256',required=True)
+    ot.add_argument('--module',required=True)
+    ot.add_argument('--as-of',required=True)
+    ot.add_argument('--field',required=True)
     qc=sub.add_parser('qa-connectivity',help='Verifica recibo HMAC de la última lectura real del trabajador Windows QA (no reejecuta SQL)')
     qc.add_argument('--profile',default='',help='ID fijo de perfil, o vacío para todas las once fuentes')
     s=sub.add_parser('stats')
     a=p.parse_args()
     catalog_path=os.getenv('TIC_CATALOG_PATH','')
     qa_root=os.getenv('TIC_QA_CONNECTIVITY_ROOT','')
-    if not catalog_path and a.task not in ('qa-connectivity','qa-50-coverage','qa-history-patterns','qa-history-mechanisms'):
+    if not catalog_path and a.task not in ('qa-connectivity','qa-50-coverage','qa-history-patterns','qa-history-mechanisms','qa-case-state','qa-reported-ot-state'):
         p.error('TIC_CATALOG_PATH debe apuntar a un catálogo privado verificado')
     catalog=SourceCatalog(catalog_path) if catalog_path else None
     if catalog is not None and catalog.data.get('public_demo_only') is True:
@@ -78,6 +88,50 @@ def main():
             p.error('Historical mechanism index not verifiable: '+type(ex).__name__)
         print(json.dumps(result,ensure_ascii=False,indent=2))
         return
+    def load_case_state():
+        base=os.getenv('TIC_QA_CASE_STATE_ROOT','')
+        first=os.getenv('TIC_QA_MONTHEND_ROOT','')
+        key=os.getenv('TIC_QA_RECEIPT_SIGNING_KEY','')
+        if not (base and first and key):
+            p.error('TIC_QA_CASE_STATE_ROOT, TIC_QA_MONTHEND_ROOT, TIC_QA_RECEIPT_SIGNING_KEY required')
+        from .qa_case_state_evidence import VerifiedCaseStateIndex
+        return VerifiedCaseStateIndex(
+            private_root=Path(base),
+            source_file=ROOT/'qa/case_state/CaseStateRead.cs',
+            month_private=Path(first),
+            month_source=ROOT/'qa/monthend2026/MonthEnd100Read.cs',
+            key_file=Path(key))
+    if a.task=='qa-case-state':
+        try:
+            current=load_case_state()
+            outcome=current.inspect(case_sha256=a.case_sha256,
+                module_code=a.module,as_of=a.as_of,field=a.field)
+        except (ValueError,OSError,KeyError,TypeError):
+            p.error('Case-bound QA receipt could not be verified')
+        print(json.dumps(outcome,ensure_ascii=False,indent=2))
+        return
+    def load_reported_ot():
+        base=os.getenv('TIC_QA_REPORTED_OT_ROOT','')
+        monthly=os.getenv('TIC_QA_MONTHEND_ROOT','')
+        key=os.getenv('TIC_QA_RECEIPT_SIGNING_KEY','')
+        if not (base and monthly and key):
+            p.error('TIC_QA_REPORTED_OT_ROOT, TIC_QA_MONTHEND_ROOT, TIC_QA_RECEIPT_SIGNING_KEY required')
+        from .qa_reported_ot_evidence import VerifiedReportedOtIndex
+        return VerifiedReportedOtIndex(
+            private_root=Path(base),
+            source_file=ROOT/'qa/case_state/ReportedOtDomainRead.cs',
+            month_private=Path(monthly),
+            month_source=ROOT/'qa/monthend2026/MonthEnd100Read.cs',
+            key_file=Path(key))
+    if a.task=='qa-reported-ot-state':
+        try:
+            output=load_reported_ot().inspect(
+               case_sha256=a.case_sha256,module_code=a.module,
+               as_of=a.as_of,field=a.field)
+        except (ValueError,OSError,KeyError,TypeError):
+            p.error('Reported OT domain QA receipt could not be verified')
+        print(json.dumps(output,ensure_ascii=False,indent=2))
+        return
     if a.task=='qa-connectivity':
         if qa_catalog is None:
             p.error('TIC_QA_CONNECTIVITY_ROOT requerido para recibos QA privados')
@@ -109,10 +163,18 @@ def main():
                 if mechanism_path:
                     from .historical_mechanism_matching import MechanismIndex
                     mechanisms=MechanismIndex(mechanism_path)
+                case_state=None
+                if os.getenv('TIC_QA_CASE_STATE_ROOT'):
+                    case_state=load_case_state()
+                reported_ot=None
+                if os.getenv('TIC_QA_REPORTED_OT_ROOT'):
+                    reported_ot=load_reported_ot()
                 agent=InvestigationAgent(llm,EvidenceTools(
                     memory,catalog,qa_catalog=qa_catalog,preventive_50=preventive,
                     historical_patterns=historical,
-                    historical_mechanisms=mechanisms),memory,max_steps=a.max_steps)
+                    historical_mechanisms=mechanisms,
+                    case_state=case_state,
+                    reported_ot=reported_ot),memory,max_steps=a.max_steps)
                 if a.task=='batch-2026':
                     result=HoldoutBatch(agent,ResolutionGate(catalog),now=datetime.now().strftime('%Y-%m-%dT%H:%M:%S')).run(a.jsonl,a.out,max_cases=a.limit)
                     print(json.dumps(result,ensure_ascii=False,indent=2));return

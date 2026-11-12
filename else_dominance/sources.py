@@ -32,7 +32,7 @@ class SourceCatalog:
                 and (not right or right in (r['left'],r['right']))]
 
 class EvidenceTools:
-    def __init__(self, memory, sources: SourceCatalog, live_adapter=None, *, qa_catalog=None, preventive_50=None, historical_patterns=None, historical_mechanisms=None):
+    def __init__(self, memory, sources: SourceCatalog, live_adapter=None, *, qa_catalog=None, preventive_50=None, historical_patterns=None, historical_mechanisms=None, case_state=None, reported_ot=None):
         self.memory=memory
         self.sources=sources
         self.live_adapter=live_adapter
@@ -40,6 +40,8 @@ class EvidenceTools:
         self.preventive_50=preventive_50
         self.historical_patterns=historical_patterns
         self.historical_mechanisms=historical_mechanisms
+        self.case_state=case_state
+        self.reported_ot=reported_ot
     @property
     def descriptions(self):
         return {
@@ -51,7 +53,9 @@ class EvidenceTools:
           'inspect_qa_connection':'Verify a prior signed Windows QA connectivity probe for one registered source. This is NOT a ticket-specific or fresh live read.',
           'inspect_preventive50_source':'List the original primary/secondary metrics and observed SQL candidate tables for one of the 50 preventive rules. Never a prediction PASS.',
           'inspect_historical_procedures':'Prior historical SQL references for the exact incident module. If request text is available, suppress unanchored hints. NOT a verified cause. Exact args: module_code.',
-          'inspect_historical_mechanisms':'Suggest only explicit-request-anchored mechanism mentions from prior signed historical notes of the same module. NOT performed fixes. Exact args: module_code.'}
+          'inspect_historical_mechanisms':'Suggest only explicit-request-anchored mechanism mentions from prior signed historical notes of the same module. NOT performed fixes. Exact args: module_code.',
+          'inspect_case_qa_state':'Read exactly ONE named field for this preauthorized 2026 ITIL incident from a signed, case-bound dated QA snapshot; not related commercial/OT state or current live proof. Exact args: field.',
+          'inspect_reported_ot_qa_state':'Read one QA field for an OT identifier reported verbatim in this exact signed ticket. NOT an official ITIL-to-OT relation and NOT a repair. Exact args: field.'}
 
     def execute(self, name: str, args: dict, context: dict) -> dict:
         if name=='search_precedents':
@@ -103,6 +107,30 @@ class EvidenceTools:
             try:return self.historical_mechanisms.suggest(module,text)
             except (ValueError,TypeError):
                 return {'status':'BLOCKED','error':'MECHANISM_REQUEST_INVALID'}
+        if name=='inspect_case_qa_state':
+            if self.case_state is None:
+                return {'status':'BLOCKED','error':'CASESTATE_VERIFIED_CATALOG_NOT_LOADED'}
+            if type(args) is not dict or set(args)!={'field'}:
+                return {'status':'BLOCKED','error':'CASESTATE_ONLY_FIELD_ARGUMENT_ALLOWED'}
+            if (not context.get('case_sha256') or not context.get('module_code')
+                or not context.get('as_of')):
+                return {'status':'BLOCKED','error':'CASESTATE_EXACT_CASE_SCOPE_MISSING'}
+            return self.case_state.inspect(
+                case_sha256=context['case_sha256'],
+                module_code=context['module_code'],
+                as_of=context['as_of'],field=args['field'])
+        if name=='inspect_reported_ot_qa_state':
+            if self.reported_ot is None:
+                return {'status':'BLOCKED','error':'REPORTED_OT_QA_NOT_CONFIGURED'}
+            if type(args) is not dict or set(args)!={'field'}:
+                return {'status':'BLOCKED','error':'REPORTED_OT_ONLY_FIELD_ARGUMENT_ALLOWED'}
+            if (not context.get('case_sha256') or not context.get('module_code')
+                or not context.get('as_of')):
+                return {'status':'BLOCKED','error':'REPORTED_OT_EXACT_CASE_SCOPE_MISSING'}
+            return self.reported_ot.inspect(
+                case_sha256=context['case_sha256'],
+                module_code=context['module_code'],
+                as_of=context['as_of'],field=args['field'])
         if name=='inspect_preventive50_source':
             if self.preventive_50 is None:
                 return {'status':'BLOCKED','error':'PREVENTIVE_50_CONTRACT_NOT_LOADED'}

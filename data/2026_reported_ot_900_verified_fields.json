@@ -1,0 +1,79 @@
+{
+  "schema": "else.itil.qa.2026-reported-ot-900-domain-proof-summary.v1",
+  "source": "ELSE70/dbDistribucion_D/dbo.taOrdenTrabajo",
+  "source_ticket_table": "ELSE70/dbITIL_D/dbo.taIncidente",
+  "receipt_sha256": "162b92652e336f0d1730c0829ae6ce86182d08ab81fd5531cb960f0418aa773f",
+  "itil_cases_scanned": 900,
+  "queries_exact_reported_identifier": 42,
+  "excluded_ambiguous_reported_identifiers": 5,
+  "excluded_other_company": 12,
+  "no_explicit_identifier": 841,
+  "domain_records_returned_one_row": 9,
+  "domain_queries_zero_rows": 33,
+  "domain_exact_field_values_verified": 63,
+  "formal_ITIL_OT_join_verified": false,
+  "root_causes_verified": 0,
+  "repairs_executed": 0,
+  "modifications": 0,
+  "note": "Identifier is reported in ticket text; not a certified FK. Zero rows only covers this table at QA read time.",
+  "months": {
+    "2026-01": {
+      "domain_fields_value_verified": 21,
+      "explicit_reported_ot_domain_queries": 8,
+      "no_row_in_probed_qa_table": 5,
+      "reported_ot_row_found": 3,
+      "selected_itil_cases": 100
+    },
+    "2026-02": {
+      "explicit_reported_ot_domain_queries": 4,
+      "no_row_in_probed_qa_table": 4,
+      "reported_ot_row_found": 0,
+      "selected_itil_cases": 100
+    },
+    "2026-03": {
+      "domain_fields_value_verified": 21,
+      "explicit_reported_ot_domain_queries": 4,
+      "no_row_in_probed_qa_table": 1,
+      "reported_ot_row_found": 3,
+      "selected_itil_cases": 100
+    },
+    "2026-04": {
+      "domain_fields_value_verified": 14,
+      "explicit_reported_ot_domain_queries": 4,
+      "no_row_in_probed_qa_table": 2,
+      "reported_ot_row_found": 2,
+      "selected_itil_cases": 100
+    },
+    "2026-05": {
+      "domain_fields_value_verified": 7,
+      "explicit_reported_ot_domain_queries": 5,
+      "no_row_in_probed_qa_table": 4,
+      "reported_ot_row_found": 1,
+      "selected_itil_cases": 100
+    },
+    "2026-06": {
+      "explicit_reported_ot_domain_queries": 7,
+      "no_row_in_probed_qa_table": 7,
+      "reported_ot_row_found": 0,
+      "selected_itil_cases": 100
+    },
+    "2026-07": {
+      "explicit_reported_ot_domain_queries": 4,
+      "no_row_in_probed_qa_table": 4,
+      "reported_ot_row_found": 0,
+      "selected_itil_cases": 100
+    },
+    "2026-08": {
+      "explicit_reported_ot_domain_queries": 3,
+      "no_row_in_probed_qa_table": 3,
+      "reported_ot_row_found": 0,
+      "selected_itil_cases": 100
+    },
+    "2026-09": {
+      "explicit_reported_ot_domain_queries": 3,
+      "no_row_in_probed_qa_table": 3,
+      "reported_ot_row_found": 0,
+      "selected_itil_cases": 100
+    }
+  }
+}
