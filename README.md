@@ -50,6 +50,21 @@ identificadores reales.
 
 [Informe de vinculación](docs/ITIL_SIELSE_VINCULACION_VERIFICADA_TICKET_OBJETO_20261112.md).
 
+### Grafo de objetos empresariales para junio completo (QA retrospectiva)
+
+Se auditaron **1.621 solicitudes ITIL originales**, sin utilizar notas
+históricas para elegir OT/cobranza. Se recuperaron **333 tickets** con
+PK de negocio y sucursal coincidentes, con **1.491 relaciones lógicas**
+y **1.236 claves empresariales distintas** tras deduplicar copias.
+Los casos de tipo ambiguo y las claves compartidas entre tickets se
+mantienen en revisión. **Ninguna coincidencia certifica reparación**.
+
+La CLI qa-june-full-business-graph requiere --retrospective-qa, y el
+agente solo puede usarla si el operador habilita el modo con SHA exacto
+de expediente. Los datos privados permanecen fuera de GitHub.
+
+[Informe de junio completo](docs/QA_ITIL_JUNE2026_FULL_1621_SOURCE_PK_GRAPH_20261113.md).
+
 ## Ejecutar pruebas
 
 ```bash

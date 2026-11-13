@@ -71,6 +71,16 @@ tienen clave OT/cobranza del tipo esperado. Ninguna correspondencia equivale
 a FK declarada, contrato de aplicación confirmado, objeto principal,
 estado de junio o reparación. Los resultados exponen handles de objeto,
 nunca números privados del negocio; un handle no concede permiso de cambio.
+inspect_june_full_qa_business_graph es una herramienta EXCLUSIVAMENTE
+RETROSPECTIVA en QA, que solo un operador puede habilitar, sobre 1.621
+solicitudes originales de junio de 2026. La búsqueda de objetos ocurrió
+en noviembre, no en junio. Incluso con PK idéntica y misma sucursal,
+el estado en el instante del incidente, vínculo semántico, causa,
+selección de objeto principal y reparación siguen sin demostrarse.
+Varios objetos pueden ser copias del mismo PK, y los PK reutilizados
+en otros tickets o módulos no prueban causa compartida.
+El usuario ni el LLM pueden activar el modo retrospectivo mediante
+un argumento de la herramienta.
 Los patrones de procedimientos históricos provienen de notas de otros incidentes;
 pueden describir sentencias SQL comentadas o no ejecutadas. Los nombres de campos
 solo son hipótesis cuando la solicitud menciona directamente el objeto; si la
@@ -82,7 +92,7 @@ respondió a dos SELECT tipados: NO es un recibo para el incidente que investiga
 ni autoriza diagnosticar su estado, su causa o su reparación.
 Antes de responder como hecho, verifica columnas, disponibilidad temporal y permisos por catálogo. Si acceso es DENIED no reintentes ni asumas que consultaste. No produzcas SQL libre como acción ejecutable; pide herramientas registradas.
 Responde SOLAMENTE JSON válido (sin markdown), una de dos formas:
-{"type":"tool","name":"search_precedents|find_sources|describe_source|inspect_relation|inspect_qa_connection|inspect_preventive50_source|inspect_historical_procedures|inspect_historical_mechanisms|inspect_case_qa_state|inspect_reported_ot_qa_state|inspect_itil_lifecycle|inspect_itil_application_contract|inspect_june_business_route|inspect_itil_business_links|query_live","args":{...}}
+{"type":"tool","name":"search_precedents|find_sources|describe_source|inspect_relation|inspect_qa_connection|inspect_preventive50_source|inspect_historical_procedures|inspect_historical_mechanisms|inspect_case_qa_state|inspect_reported_ot_qa_state|inspect_itil_lifecycle|inspect_itil_application_contract|inspect_june_business_route|inspect_itil_business_links|inspect_june_full_qa_business_graph|query_live","args":{...}}
 o
 {"type":"final","status":"PLAN_PROPUESTO|INVESTIGACION_PENDIENTE|NO_SUSTENTADO",
 "system_and_operation":"...", "problem":"...", "hypotheses":[{"cause":"...","evidence_refs":[],"test":"..."}],
@@ -280,6 +290,23 @@ class InvestigationAgent:
                 and v['result'].get('native_sql_foreign_key_verified') is False
                 and v['result'].get('business_mutations')==0)
         ]
+        retrospective_graph_observations=[
+            {'reference':k,
+             'case_sha256':v['result']['case_sha256'],
+             'candidate_count':v['result']['business_candidate_count'],
+             'status':v['result']['status'],
+             'business_data_observed_at_utc':v['result']['business_data_observed_at_utc'],
+             'business_state_at_incident_time_verified':False,
+             'business_causal_diagnosis_certified':False,
+             'source_receipt_sha256':v['result']['source_receipt_sha256']}
+            for k,v in evidence.items()
+            if (v['name']=='inspect_june_full_qa_business_graph'
+                and v['result'].get('retrospective_qa_only') is True
+                and v['result'].get('business_state_at_incident_time_verified') is False
+                and v['result'].get('business_mutations')==0)
+        ]
+        clean['retrospective_june_qa_evidence_available']=bool(retrospective_graph_observations)
+        clean['retrospective_june_qa_observations']=retrospective_graph_observations
         clean['itil_business_link_evidence_available']=bool(case_link_observations)
         clean['itil_business_link_observations']=case_link_observations
         clean['june_business_route_evidence_available']=bool(june_business_observations)

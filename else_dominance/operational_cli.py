@@ -68,13 +68,21 @@ def main():
     link.add_argument('--module',required=True)
     link.add_argument('--as-of',required=True)
     link.add_argument('--view',choices=('summary','objects'),required=True)
+    full=sub.add_parser('qa-june-full-business-graph',
+        help='OPERATOR retrospective QA only: original June 1621-case PK evidence, not as-of fix')
+    full.add_argument('--case-sha256',required=True)
+    full.add_argument('--module',required=True)
+    full.add_argument('--as-of',required=True)
+    full.add_argument('--view',choices=('summary','objects','overlaps'),required=True)
+    full.add_argument('--retrospective-qa',action='store_true',
+        help='Explicitly acknowledge current QA evidence must not be treated as June historical state')
     qc=sub.add_parser('qa-connectivity',help='Verifica recibo HMAC de la última lectura real del trabajador Windows QA (no reejecuta SQL)')
     qc.add_argument('--profile',default='',help='ID fijo de perfil, o vacío para todas las once fuentes')
     s=sub.add_parser('stats')
     a=p.parse_args()
     catalog_path=os.getenv('TIC_CATALOG_PATH','')
     qa_root=os.getenv('TIC_QA_CONNECTIVITY_ROOT','')
-    if not catalog_path and a.task not in ('qa-connectivity','qa-50-coverage','qa-history-patterns','qa-history-mechanisms','qa-case-state','qa-reported-ot-state','qa-itil-lifecycle','qa-itil-application-contract','qa-june-business-route','qa-itil-business-links'):
+    if not catalog_path and a.task not in ('qa-connectivity','qa-50-coverage','qa-history-patterns','qa-history-mechanisms','qa-case-state','qa-reported-ot-state','qa-itil-lifecycle','qa-itil-application-contract','qa-june-business-route','qa-itil-business-links','qa-june-full-business-graph'):
         p.error('TIC_CATALOG_PATH debe apuntar a un catálogo privado verificado')
     catalog=SourceCatalog(catalog_path) if catalog_path else None
     if catalog is not None and catalog.data.get('public_demo_only') is True:
@@ -233,6 +241,27 @@ def main():
             repo=ROOT,private=Path(private),
             request_private=Path(request),prior_private=Path(prior),
             june_private=Path(june),key_file=Path(signer))
+    def load_june_full_graph():
+        private=os.getenv('TIC_QA_JUNE1621_GRAPH_ROOT','')
+        june=os.getenv('TIC_QA_JUNE_FULL_SOURCE_ROOT','')
+        signer=os.getenv('TIC_QA_RECEIPT_SIGNING_KEY','')
+        if not all((private,june,signer)):
+            p.error('TIC_QA_JUNE1621_GRAPH_ROOT, TIC_QA_JUNE_FULL_SOURCE_ROOT and receipt signing key required')
+        from .qa_june_full_source_links import VerifiedJuneFullBusinessGraph
+        return VerifiedJuneFullBusinessGraph(
+            repo=ROOT,private=Path(private),june_source=Path(june),
+            key_file=Path(signer))
+    if a.task=='qa-june-full-business-graph':
+        if not a.retrospective_qa:
+            p.error('Explicit --retrospective-qa is required; business QA was observed after June')
+        try:
+            result=load_june_full_graph().inspect(
+                case_sha256=a.case_sha256,module_code=a.module,
+                as_of=a.as_of,view=a.view,retrospective_qa=True)
+        except (ValueError,KeyError,OSError,TypeError):
+            p.error('June full QA graph signing/coverage invalid or scope not authorized')
+        print(json.dumps(result,ensure_ascii=False,indent=2))
+        return
     if a.task=='qa-itil-business-links':
         try:
             output=load_ticket_business_links().inspect(
@@ -300,6 +329,15 @@ def main():
                 ticket_business_links=None
                 if os.getenv('TIC_QA_TICKET_BUSINESS_LINK_ROOT'):
                     ticket_business_links=load_ticket_business_links()
+                june_full_graph=None
+                # This flag is an operator-controlled *environment policy*, not
+                # an LLM tool argument or user-provided ticket JSON field.
+                if os.getenv('TIC_QA_JUNE1621_RETROSPECTIVE_OPERATOR_ENABLED')=='1':
+                    approved_case=os.getenv('TIC_QA_JUNE1621_OPERATOR_CASE_SCOPE_SHA256','')
+                    if not (len(approved_case)==64
+                            and all(c in '0123456789abcdef' for c in approved_case)):
+                        p.error('Operator QA scope must pin one exact 64-character case SHA')
+                    june_full_graph=load_june_full_graph()
                 agent=InvestigationAgent(llm,EvidenceTools(
                     memory,catalog,qa_catalog=qa_catalog,preventive_50=preventive,
                     historical_patterns=historical,
@@ -309,7 +347,11 @@ def main():
                     itil_lifecycle=lifecycle,
                     derivation_contracts=contract,
                     june_business_route=june_business_route,
-                    ticket_business_links=ticket_business_links),memory,max_steps=a.max_steps)
+                    ticket_business_links=ticket_business_links,
+                    june_full_graph=june_full_graph,
+                    june_full_graph_authorized_case_sha256=(
+                        os.getenv('TIC_QA_JUNE1621_OPERATOR_CASE_SCOPE_SHA256')
+                        if june_full_graph is not None else None)),memory,max_steps=a.max_steps)
                 if a.task=='batch-2026':
                     result=HoldoutBatch(agent,ResolutionGate(catalog),now=datetime.now().strftime('%Y-%m-%dT%H:%M:%S')).run(a.jsonl,a.out,max_cases=a.limit)
                     print(json.dumps(result,ensure_ascii=False,indent=2));return

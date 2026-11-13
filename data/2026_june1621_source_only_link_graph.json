@@ -1,0 +1,107 @@
+{
+  "schema": "else.itil.qa.2026-june1621-retrospective-pk-graph-summary.v1",
+  "month": "2026-06",
+  "evaluated_original_incidents": 1621,
+  "original_request_only": true,
+  "history_or_gold_not_consulted_for_classification": true,
+  "source_cohort_selected_without_gold_labels": true,
+  "qa_observed_at_utc": "2026-11-13T13:52:00.9979358Z",
+  "retrospective_qa_not_historical_asof": true,
+  "candidate_mentions_19digit_per_ticket": 1342,
+  "globally_distinct_candidate_numbers": 1125,
+  "business_qa_lookup_sql_batches": 168,
+  "business_databases_read_only": 13,
+  "pk_observations_before_branch_check": 1813,
+  "wrong_branch_observations_rejected": 215,
+  "pk_observations_same_branch": 1598,
+  "cases_with_any_pk_before_branch_check": 446,
+  "cases_with_same_branch_pk": 333,
+  "cases_with_only_wrong_branch_pk": 113,
+  "cases_without_same_branch_pk": 1288,
+  "cases_with_one_logical_pk": 158,
+  "cases_with_multiple_logical_pks": 175,
+  "cases_with_both_ot_and_collection_matches": 107,
+  "logical_ticket_pk_relations_after_copy_dedup": 1491,
+  "distinct_business_pk_values_by_type": 1236,
+  "logical_ticket_pk_present_in_multiple_databases": 88,
+  "extra_copy_observations_removed": 107,
+  "business_pk_shared_by_multiple_tickets": 232,
+  "extra_ticket_memberships_for_shared_pk": 255,
+  "max_tickets_sharing_one_pk": 5,
+  "shared_business_pk_crosses_module": 10,
+  "historical_june_business_state_verified": false,
+  "official_itil_business_fk_verified": false,
+  "business_repairs_certified": 0,
+  "business_writes": 0,
+  "source_receipt_sha256": "b1303359fb72aee6720fba660555fe6a8332cb1af26232239d19650061dab5fd",
+  "qa_dual_pk_receipt_sha256": "d720a2e476bf6e046d27125ae71ddc23b0a147dae5b7946e0fe96dfa3ca0bf3c",
+  "same_branch_by_database": [
+    {
+      "kind": "COLLECTION",
+      "database": "dbComercial001_20230131",
+      "count": 3
+    },
+    {
+      "kind": "COLLECTION",
+      "database": "dbComercial001_D",
+      "count": 32
+    },
+    {
+      "kind": "COLLECTION",
+      "database": "dbComercial001_Diario",
+      "count": 976
+    },
+    {
+      "kind": "COLLECTION",
+      "database": "dbComercial004_D",
+      "count": 7
+    },
+    {
+      "kind": "COLLECTION",
+      "database": "dbComercial007_D",
+      "count": 1
+    },
+    {
+      "kind": "COLLECTION",
+      "database": "dbComercial008_D",
+      "count": 4
+    },
+    {
+      "kind": "COLLECTION",
+      "database": "dbComercial100_D",
+      "count": 4
+    },
+    {
+      "kind": "COLLECTION",
+      "database": "dbComercial200_D",
+      "count": 13
+    },
+    {
+      "kind": "OT",
+      "database": "dbComercial001_D",
+      "count": 25
+    },
+    {
+      "kind": "OT",
+      "database": "dbComercial004_D",
+      "count": 23
+    },
+    {
+      "kind": "OT",
+      "database": "dbComercial100_D",
+      "count": 11
+    },
+    {
+      "kind": "OT",
+      "database": "dbDistribucion_D",
+      "count": 73
+    },
+    {
+      "kind": "OT",
+      "database": "dbGerencial_D",
+      "count": 426
+    }
+  ],
+  "source_selection_is_exhaustive_june_not_57_posthoc": true,
+  "private_graph_receipt_sha256": "675278f5764891852a2f304c28512942a63c52db2d985ca69d93290a704fd285"
+}

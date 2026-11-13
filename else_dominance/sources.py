@@ -32,7 +32,7 @@ class SourceCatalog:
                 and (not right or right in (r['left'],r['right']))]
 
 class EvidenceTools:
-    def __init__(self, memory, sources: SourceCatalog, live_adapter=None, *, qa_catalog=None, preventive_50=None, historical_patterns=None, historical_mechanisms=None, case_state=None, reported_ot=None, itil_lifecycle=None, derivation_contracts=None, june_business_route=None, ticket_business_links=None):
+    def __init__(self, memory, sources: SourceCatalog, live_adapter=None, *, qa_catalog=None, preventive_50=None, historical_patterns=None, historical_mechanisms=None, case_state=None, reported_ot=None, itil_lifecycle=None, derivation_contracts=None, june_business_route=None, ticket_business_links=None, june_full_graph=None, june_full_graph_authorized_case_sha256=None):
         self.memory=memory
         self.sources=sources
         self.live_adapter=live_adapter
@@ -46,6 +46,8 @@ class EvidenceTools:
         self.derivation_contracts=derivation_contracts
         self.june_business_route=june_business_route
         self.ticket_business_links=ticket_business_links
+        self.june_full_graph=june_full_graph
+        self.june_full_graph_authorized_case_sha256=june_full_graph_authorized_case_sha256
     @property
     def descriptions(self):
         return {
@@ -63,7 +65,8 @@ class EvidenceTools:
           'inspect_itil_lifecycle':'Read the signed incident-specific ITIL attention/derivation/lookup counts and coded derivation events via exact CodigoIncidente key equality. This is NOT a declared SQL FK, semantic action, or repair. Exact args: view=summary|derivation_events.',
           'inspect_itil_application_contract':'Read same-ITIL-database module/service key evidence or a type code from the exact incident. AliasBDE and DLL are only declarations, not physical DB routes or a business-object FK. Exact args: view=module_route OR view=derivation_type with type_code.',
           'inspect_june_business_route':'Retrieve signed QA evidence for one of five June 2026 cases: exact company route, current transactional/gerencial row agreement, audit presence. Never a verified historical fix or an official ITIL-business FK. Exact args: view=route|state|audit.',
-          'inspect_itil_business_links':'Read case-scoped, signed QA primary-key matches from the ORIGINAL incident request for one of 57 historical June cases. Exact args: view=summary|objects. For multiple objects never assume a main target. NOT a native FK, state-in-June or repair.'}
+          'inspect_itil_business_links':'Read case-scoped, signed QA primary-key matches from the ORIGINAL incident request for one of 57 historical June cases. Exact args: view=summary|objects. For multiple objects never assume a main target. NOT a native FK, state-in-June or repair.',
+          'inspect_june_full_qa_business_graph':'Operator-authorized RETROSPECTIVE QA ONLY: inspect source-request-to-PK matches of one signed June case from all 1,621, including duplicate copies and shared objects. Exact args: view=summary|objects|overlaps. Current November QA observations, NEVER evidence of June state, verified fix, or blind historical label.'}
 
     def execute(self, name: str, args: dict, context: dict) -> dict:
         if name=='search_precedents':
@@ -165,6 +168,22 @@ class EvidenceTools:
                     case_sha256=context['case_sha256'],module_code=context['module_code'],
                     as_of=context['as_of'],type_code=args['type_code'])
             return {'status':'BLOCKED','error':'ITIL_APPLICATION_CONTRACT_ARGS_NOT_EXACT'}
+        if name=='inspect_june_full_qa_business_graph':
+            if self.june_full_graph is None:
+                return {'status':'BLOCKED','error':'FULL_JUNE_GRAPH_OPERATOR_QA_MODE_NOT_ENABLED'}
+            if (type(self.june_full_graph_authorized_case_sha256) is not str
+                    or context.get('case_sha256')!=self.june_full_graph_authorized_case_sha256):
+                return {'status':'BLOCKED','error':'FULL_JUNE_GRAPH_OPERATOR_CASE_ALLOWLIST_REQUIRED'}
+            if type(args) is not dict or set(args)!={'view'} or args['view'] not in ('summary','objects','overlaps'):
+                return {'status':'BLOCKED','error':'FULL_JUNE_GRAPH_EXACT_VIEW_ONLY'}
+            if not all(context.get(x) for x in ('case_sha256','module_code','as_of')):
+                return {'status':'BLOCKED','error':'FULL_JUNE_GRAPH_SIGNED_CASE_SCOPE_REQUIRED'}
+            return self.june_full_graph.inspect(
+                case_sha256=context['case_sha256'],
+                module_code=context['module_code'],
+                as_of=context['as_of'],
+                view=args['view'],
+                retrospective_qa=True)
         if name=='inspect_itil_business_links':
             if self.ticket_business_links is None:
                 return {'status':'BLOCKED','error':'SIGNED_TICKET_OBJECT_LINKS_NOT_CONFIGURED'}
