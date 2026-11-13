@@ -62,13 +62,19 @@ def main():
     jb.add_argument('--module',required=True)
     jb.add_argument('--as-of',required=True)
     jb.add_argument('--view',choices=('route','state','audit'),required=True)
+    link=sub.add_parser('qa-itil-business-links',
+        help='Signed case-scoped ITIL request to business PK observations; never an official FK')
+    link.add_argument('--case-sha256',required=True)
+    link.add_argument('--module',required=True)
+    link.add_argument('--as-of',required=True)
+    link.add_argument('--view',choices=('summary','objects'),required=True)
     qc=sub.add_parser('qa-connectivity',help='Verifica recibo HMAC de la última lectura real del trabajador Windows QA (no reejecuta SQL)')
     qc.add_argument('--profile',default='',help='ID fijo de perfil, o vacío para todas las once fuentes')
     s=sub.add_parser('stats')
     a=p.parse_args()
     catalog_path=os.getenv('TIC_CATALOG_PATH','')
     qa_root=os.getenv('TIC_QA_CONNECTIVITY_ROOT','')
-    if not catalog_path and a.task not in ('qa-connectivity','qa-50-coverage','qa-history-patterns','qa-history-mechanisms','qa-case-state','qa-reported-ot-state','qa-itil-lifecycle','qa-itil-application-contract','qa-june-business-route'):
+    if not catalog_path and a.task not in ('qa-connectivity','qa-50-coverage','qa-history-patterns','qa-history-mechanisms','qa-case-state','qa-reported-ot-state','qa-itil-lifecycle','qa-itil-application-contract','qa-june-business-route','qa-itil-business-links'):
         p.error('TIC_CATALOG_PATH debe apuntar a un catálogo privado verificado')
     catalog=SourceCatalog(catalog_path) if catalog_path else None
     if catalog is not None and catalog.data.get('public_demo_only') is True:
@@ -214,6 +220,28 @@ def main():
         from .qa_june_business_route import VerifiedJuneBusinessRoute
         return VerifiedJuneBusinessRoute(root=Path(private),five_root=Path(five),
            qa_source_root=ROOT,signing_key=Path(signing))
+    def load_ticket_business_links():
+        private=os.getenv('TIC_QA_TICKET_BUSINESS_LINK_ROOT','')
+        request=os.getenv('TIC_QA_JUNE57_REQUEST_IDENTIFIERS_ROOT','')
+        prior=os.getenv('TIC_QA_JUNE57_PRIOR_ROOT','')
+        june=os.getenv('TIC_QA_JUNE_FULL_SOURCE_ROOT','')
+        signer=os.getenv('TIC_QA_RECEIPT_SIGNING_KEY','')
+        if not all((private,request,prior,june,signer)):
+            p.error('Signed ITIL business link QA roots and receipt signing key required')
+        from .qa_ticket_business_links import VerifiedTicketBusinessLinks
+        return VerifiedTicketBusinessLinks(
+            repo=ROOT,private=Path(private),
+            request_private=Path(request),prior_private=Path(prior),
+            june_private=Path(june),key_file=Path(signer))
+    if a.task=='qa-itil-business-links':
+        try:
+            output=load_ticket_business_links().inspect(
+                case_sha256=a.case_sha256,module_code=a.module,
+                as_of=a.as_of,view=a.view)
+        except (ValueError,KeyError,OSError,TypeError):
+            p.error('Ticket-business link receipt not trusted or not within allowed QA scope')
+        print(json.dumps(output,ensure_ascii=False,indent=2))
+        return
     if a.task=='qa-june-business-route':
         try:
             result=load_june_business_route().inspect(
@@ -269,6 +297,9 @@ def main():
                 june_business_route=None
                 if os.getenv('TIC_QA_JUNE_ROOTCAUSE_ROOT'):
                     june_business_route=load_june_business_route()
+                ticket_business_links=None
+                if os.getenv('TIC_QA_TICKET_BUSINESS_LINK_ROOT'):
+                    ticket_business_links=load_ticket_business_links()
                 agent=InvestigationAgent(llm,EvidenceTools(
                     memory,catalog,qa_catalog=qa_catalog,preventive_50=preventive,
                     historical_patterns=historical,
@@ -277,7 +308,8 @@ def main():
                     reported_ot=reported_ot,
                     itil_lifecycle=lifecycle,
                     derivation_contracts=contract,
-                    june_business_route=june_business_route),memory,max_steps=a.max_steps)
+                    june_business_route=june_business_route,
+                    ticket_business_links=ticket_business_links),memory,max_steps=a.max_steps)
                 if a.task=='batch-2026':
                     result=HoldoutBatch(agent,ResolutionGate(catalog),now=datetime.now().strftime('%Y-%m-%dT%H:%M:%S')).run(a.jsonl,a.out,max_cases=a.limit)
                     print(json.dumps(result,ensure_ascii=False,indent=2));return
