@@ -1,0 +1,32 @@
+{
+  "schema": "else.itil.qa.2026-june57-ticket-business-links-public-summary.v1",
+  "qa_period": "2026-06",
+  "case_count": 57,
+  "linked_cases": 55,
+  "unlinked_cases": 2,
+  "single_matched_object_cases": 13,
+  "multiple_matched_object_cases": 42,
+  "itil_ot_cases": 22,
+  "itil_cobranza_cases": 35,
+  "qa_verified_case_pk_edges": 619,
+  "unique_business_primary_keys": 525,
+  "same_key_reused_across_tickets": 87,
+  "native_sql_link_tables_with_exact_itil_and_business_pk_columns": 0,
+  "native_declared_fks_involving_itil_taIncidente": 0,
+  "databases_inspected_for_native_link": 14,
+  "link_evidence": "ORIGINAL_REQUEST_TO_QA_PK_VALUE_AND_BRANCH",
+  "all_links_retain_original_case_and_module_scope": true,
+  "selected_cohort_posthoc_not_blind": true,
+  "no_main_business_object_inferred_for_multi_object_tickets": true,
+  "official_itil_business_fk_certified": false,
+  "application_transactional_link_certified": false,
+  "business_fix_certified": false,
+  "source_business_mutations": 0,
+  "evidence_receipts_sha256": {
+    "bulk": "1d9b5d09742aac809077a8f56df9a8bafc56fa3d87bc133770c9b95f4544177c",
+    "profile": "7382f4c7bdfe7535b0971ef7aa597b26ecbc82763d045acd546a3c8eebf570c6",
+    "native_schema": "5f098a9f3d3840721be67d7d02469b9a4b53e510de2e9656286ef8811705e1f9",
+    "itil_original": "b1303359fb72aee6720fba660555fe6a8332cb1af26232239d19650061dab5fd"
+  },
+  "private_registry_receipt_sha256": "2aedc27877ebfd8430b89cf4eb62c788bb13e2ba4a16c030b0b1739787d66093"
+}

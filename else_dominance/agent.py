@@ -63,6 +63,14 @@ a la empresa/sucursal de negocio. La conexion corporativa Comercial 1, 4 y
 en la base transaccional; valores distintos entre fuentes requieren abstencion.
 Una lectura actual (noviembre) no es un estado historico de junio ni prueba
 un UPDATE en la nota. Jamás declares reparado un caso por esa lectura.
+inspect_itil_business_links dispone de 619 relaciones firmadas entre 57 tickets
+ITIL de junio 2026 y 525 claves empresariales distintas, extraídas de la
+solicitud ORIGINAL y comprobadas como PK en SQL QA con sucursal coincidente.
+Solo 13 tickets tienen una única PK; 42 contienen múltiples objetos y 2 no
+tienen clave OT/cobranza del tipo esperado. Ninguna correspondencia equivale
+a FK declarada, contrato de aplicación confirmado, objeto principal,
+estado de junio o reparación. Los resultados exponen handles de objeto,
+nunca números privados del negocio; un handle no concede permiso de cambio.
 Los patrones de procedimientos históricos provienen de notas de otros incidentes;
 pueden describir sentencias SQL comentadas o no ejecutadas. Los nombres de campos
 solo son hipótesis cuando la solicitud menciona directamente el objeto; si la
@@ -74,7 +82,7 @@ respondió a dos SELECT tipados: NO es un recibo para el incidente que investiga
 ni autoriza diagnosticar su estado, su causa o su reparación.
 Antes de responder como hecho, verifica columnas, disponibilidad temporal y permisos por catálogo. Si acceso es DENIED no reintentes ni asumas que consultaste. No produzcas SQL libre como acción ejecutable; pide herramientas registradas.
 Responde SOLAMENTE JSON válido (sin markdown), una de dos formas:
-{"type":"tool","name":"search_precedents|find_sources|describe_source|inspect_relation|inspect_qa_connection|inspect_preventive50_source|inspect_historical_procedures|inspect_historical_mechanisms|inspect_case_qa_state|inspect_reported_ot_qa_state|inspect_itil_lifecycle|inspect_itil_application_contract|inspect_june_business_route|query_live","args":{...}}
+{"type":"tool","name":"search_precedents|find_sources|describe_source|inspect_relation|inspect_qa_connection|inspect_preventive50_source|inspect_historical_procedures|inspect_historical_mechanisms|inspect_case_qa_state|inspect_reported_ot_qa_state|inspect_itil_lifecycle|inspect_itil_application_contract|inspect_june_business_route|inspect_itil_business_links|query_live","args":{...}}
 o
 {"type":"final","status":"PLAN_PROPUESTO|INVESTIGACION_PENDIENTE|NO_SUSTENTADO",
 "system_and_operation":"...", "problem":"...", "hypotheses":[{"cause":"...","evidence_refs":[],"test":"..."}],
@@ -258,6 +266,22 @@ class InvestigationAgent:
                 and v['result'].get('scope')=='SIGNED_FIVE_JUNE_2026_QA_ONLY'
                 and v['result'].get('repair_certified') is False)
         ]
+        case_link_observations=[
+            {'reference':k,'status':v['result']['status'],
+             'case_sha256':v['result']['case_sha256'],
+             'qa_evidence_links':v['result']['qa_evidence_links'],
+             'primary_object_selected':False,
+             'application_semantic_relation_certified':False,
+             'historical_fix_certified':False,
+             'source_receipt_sha256':v['result']['receipt_sha256']}
+            for k,v in evidence.items()
+            if (v['name']=='inspect_itil_business_links'
+                and v['result'].get('read_only') is True
+                and v['result'].get('native_sql_foreign_key_verified') is False
+                and v['result'].get('business_mutations')==0)
+        ]
+        clean['itil_business_link_evidence_available']=bool(case_link_observations)
+        clean['itil_business_link_observations']=case_link_observations
         clean['june_business_route_evidence_available']=bool(june_business_observations)
         clean['june_business_route_observations']=june_business_observations
         clean['case_itil_field_observations']=case_snapshots

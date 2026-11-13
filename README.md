@@ -39,6 +39,17 @@ fue retrospectiva: no es un nuevo benchmark ciego ni acredita reparaciones.
 
 Metodología: [recuperación de identificadores originales](docs/QA_ITIL_JUNE2026_RECUPERACION_IDENTIFICADORES_ORIGINALES_20261112.md).
 
+### Vínculo evidencial incidente ITIL–objeto de negocio
+
+El registro privado de junio enlaza **619 relaciones expediente–PK** entre
+**55 tickets** y **525 claves empresariales distintas**. Hay **13 casos con
+una sola PK**, **42 con múltiples PK** y **dos sin objeto del tipo esperado**.
+No existe una FK nativa certificada ni reparación histórica acreditada.
+La herramienta inspect_itil_business_links consulta handles sin divulgar
+identificadores reales.
+
+[Informe de vinculación](docs/ITIL_SIELSE_VINCULACION_VERIFICADA_TICKET_OBJETO_20261112.md).
+
 ## Ejecutar pruebas
 
 ```bash
