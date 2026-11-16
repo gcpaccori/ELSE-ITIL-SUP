@@ -1,0 +1,144 @@
+{
+  "schema": "else.itil.qa.june1621-unresolved-source-triage.v1",
+  "period": "2026-06",
+  "evaluated_requests": 1621,
+  "input_source_only": true,
+  "historical_solutions_or_gold_labels_consulted": false,
+  "business_sql_executed_in_this_stage": 0,
+  "business_writes": 0,
+  "triage_is_not_historical_business_state_or_repair_evidence": true,
+  "counts": {
+    "no_19_digit_candidate": 1162,
+    "19_digit_no_same_branch_pk": 126,
+    "one_retrospective_qa_pk": 158,
+    "multiple_retrospective_qa_pks": 175,
+    "unresolved_total": 1288,
+    "retrospectively_linked_total": 333
+  },
+  "textual_hints_from_redacted_requests": {
+    "NO_19_DIGIT_CANDIDATE": {
+      "OT": 116,
+      "SUMINISTRO": 208,
+      "COBRANZA_CAJA": 55,
+      "FACTURACION": 119,
+      "RECLAMO": 82,
+      "ACCESO_USUARIO": 279,
+      "DOCUMENTAL": 221,
+      "LECTURA_MEDIDOR": 96,
+      "SOLICITUD": 122
+    },
+    "19_DIGIT_WITHOUT_SAME_BRANCH_PK": {
+      "OT": 48,
+      "SUMINISTRO": 19,
+      "COBRANZA_CAJA": 2,
+      "FACTURACION": 18,
+      "RECLAMO": 10,
+      "ACCESO_USUARIO": 22,
+      "DOCUMENTAL": 5,
+      "LECTURA_MEDIDOR": 19,
+      "SOLICITUD": 16
+    },
+    "ONE_QA_PK": {
+      "OT": 83,
+      "SUMINISTRO": 33,
+      "COBRANZA_CAJA": 8,
+      "FACTURACION": 18,
+      "RECLAMO": 4,
+      "ACCESO_USUARIO": 17,
+      "DOCUMENTAL": 16,
+      "LECTURA_MEDIDOR": 23,
+      "SOLICITUD": 18
+    },
+    "MULTIPLE_QA_PKS": {
+      "OT": 94,
+      "SUMINISTRO": 40,
+      "COBRANZA_CAJA": 51,
+      "FACTURACION": 7,
+      "RECLAMO": 0,
+      "ACCESO_USUARIO": 6,
+      "DOCUMENTAL": 22,
+      "LECTURA_MEDIDOR": 33,
+      "SOLICITUD": 7
+    }
+  },
+  "without_any_textual_hint": {
+    "19_DIGIT_WITHOUT_SAME_BRANCH_PK": 39,
+    "MULTIPLE_QA_PKS": 19,
+    "NO_19_DIGIT_CANDIDATE": 348,
+    "ONE_QA_PK": 34
+  },
+  "modules_with_most_unresolved": [
+    {
+      "module_code": "2701",
+      "unresolved_cases": 91
+    },
+    {
+      "module_code": "2501",
+      "unresolved_cases": 84
+    },
+    {
+      "module_code": "0101300100000",
+      "unresolved_cases": 54
+    },
+    {
+      "module_code": "0101100101000",
+      "unresolved_cases": 47
+    },
+    {
+      "module_code": "0101100110000",
+      "unresolved_cases": 42
+    },
+    {
+      "module_code": "2507",
+      "unresolved_cases": 42
+    },
+    {
+      "module_code": "2612",
+      "unresolved_cases": 38
+    },
+    {
+      "module_code": "2606",
+      "unresolved_cases": 35
+    },
+    {
+      "module_code": "0301100065000",
+      "unresolved_cases": 35
+    },
+    {
+      "module_code": "0101100101200",
+      "unresolved_cases": 32
+    },
+    {
+      "module_code": "0101100123000",
+      "unresolved_cases": 30
+    },
+    {
+      "module_code": "0109200111000",
+      "unresolved_cases": 29
+    },
+    {
+      "module_code": "0109400124000",
+      "unresolved_cases": 29
+    },
+    {
+      "module_code": "0101300130000",
+      "unresolved_cases": 28
+    },
+    {
+      "module_code": "2602",
+      "unresolved_cases": 27
+    }
+  ],
+  "recommendation": "Investigate non-19-digit, typed corporate identifiers and module-specific sources on new QA reads; never treat lexical hints as business-object keys.",
+  "no_factual_claim_that_unmatched_records_do_not_exist": true,
+  "unmatched_19_digit_search_breakdown": {
+    "candidate_pk_found_only_in_wrong_branch": 113,
+    "candidate_pk_not_found_in_queried_pk_tables": 13,
+    "wrong_branch_matches_are_not_ticket_object_links": true
+  },
+  "source_receipt_sha256": "b1303359fb72aee6720fba660555fe6a8332cb1af26232239d19650061dab5fd",
+  "graph_receipt_sha256": "675278f5764891852a2f304c28512942a63c52db2d985ca69d93290a704fd285",
+  "raw_discovery_receipt_sha256": "d720a2e476bf6e046d27125ae71ddc23b0a147dae5b7946e0fe96dfa3ca0bf3c",
+  "receipt_sha256_integrity_checked": true,
+  "hmac_independently_reverified_this_stage": false
+}
