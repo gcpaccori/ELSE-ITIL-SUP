@@ -294,6 +294,8 @@ internal static class AugFirst100TypedRead {
                    business_kind=rule.Kind,company=companyRoute.Company,
                    qa_database=companyRoute.Database,
                    pk_sha256=pkSha,branch_matches=branchSame,
+                   business_branch=Val(hit,"CodigoSucursal"),
+                   itil_branch=byRank[rank].Branch,
                    explicit_request_label=true,
                    same_company_provider_route=true,history_not_read=true
                 });
@@ -315,6 +317,24 @@ internal static class AugFirst100TypedRead {
      }
    }
    Need(typedNone+typedOne+typedMultiple==100,"QA_TYPED_CASES_NOT_100");
+   var decisions=Enumerable.Range(1,100).Select(rank=>{
+     int linked=typedVerified[rank].Count;
+     bool candidate=typedSources.Keys.Any(x=>x.Rank==rank);
+     bool companyOk=sourceCompanies[rank]=="1"||sourceCompanies[rank]=="3";
+     string status=!companyOk?"COMPANY_PROVIDER_ROUTE_NOT_CERTIFIED"
+       :!candidate?"NO_EXPLICIT_TYPED_BUSINESS_KEY_IN_REQUEST"
+       :linked==0 && typedWrongRanks.Contains(rank)?"FOREIGN_BRANCH_MATCH_REJECTED"
+       :linked==0?"EXPLICIT_TYPED_KEY_NOT_FOUND_IN_COMPANY_DB"
+       :linked==1?"SINGLE_EXACT_TYPED_PK_QA_OBSERVATION"
+       :"MULTIPLE_EXACT_TYPED_PKS_NO_PRIMARY_INFERRED";
+     return new{rank,case_sha256=byRank[rank].CaseSha,status,
+       typed_business_link_count=linked,
+       company_route_verified=companyOk,
+       timestamp_only_november_qa=true,
+       historical_causality_certified=false,
+       repair_certified=false};
+   }).ToArray();
+   Need(decisions.Length==100,"QA_TYPED_DECISION_COUNT");
    int none=0,withoutCandidates=0,noMatch=0,one=0,many=0,mixed=0,wrongOnly=0;
    var ranksWithAny=matches.Select(x=>JsonSerializer.SerializeToElement(x).GetProperty("rank").GetInt32()).ToHashSet();
    for(int rank=1;rank<=100;rank++){
@@ -361,6 +381,9 @@ internal static class AugFirst100TypedRead {
       typed_cases_wrong_branch_only=typedWrongOnly,
       typed_missing_table_schema_types=typedMissingKinds.OrderBy(x=>x).ToArray(),
       typed_labels_used_no_history=true,
+      legacy_generic_cross_db_matches_are_not_promoted_to_authority=true,
+      exact_company_provider_and_explicit_label_mandatory_for_typed_claim=true,
+      per_case_statuses=decisions.GroupBy(x=>x.status).ToDictionary(g=>g.Key,g=>g.Count()),
       typed_source_expanded_beyond_original_1800=true,
       observed_utc=DateTime.UtcNow.ToString("O",CultureInfo.InvariantCulture),
       solution_read=false,causes_certified=0,repairs_certified=0,
@@ -369,6 +392,7 @@ internal static class AugFirst100TypedRead {
    string sourceSha=Hash(File.ReadAllBytes(Path.Combine(Root,Reader)));
    byte[] payload=JsonSerializer.SerializeToUtf8Bytes(new {
       schema=Schema,source_sha256=sourceSha,report,case_metadata=cases,matches,typed_matches=typedMatches,
+      case_decisions=decisions,
       read_only=true,history_not_read=true,business_writes=0
    });
    string digest=Hash(payload);
