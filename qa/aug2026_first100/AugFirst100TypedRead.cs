@@ -16,7 +16,7 @@ using SIELSEAccesoDatos;
 // A QA observation in November does NOT establish an August state or intervention.
 internal static class AugFirst100TypedRead {
  const string OldRoot=@"C:\Temp\ELSE_ITIL_AUG2026_QA_20261110";
- const string Root=@"C:\Temp\ELSE_ITIL_AUG_TYPED100_20261117";
+ const string Root=@"C:\Temp\ELSE_ITIL_AUG_TYPED100_V2_20261117";
  const string Signer=@"C:\Temp\ELSE_ITIL_AUG_SAP_OT_HAND_QA_20261110\worker_hmac.private";
  const string Schema="else.itil.qa.aug2026-first100-company-typed.v1";
  const string Reader="AugFirst100TypedRead.cs";
@@ -397,10 +397,12 @@ internal static class AugFirst100TypedRead {
    });
    string digest=Hash(payload);
    string path=Path.Combine(Root,"aug_first100_company_typed.private.json");
-   File.WriteAllBytes(path,payload);
+   using(var fs=new FileStream(path,FileMode.CreateNew,FileAccess.Write,FileShare.None))
+      fs.Write(payload);
    string mac=Convert.ToHexString(HMACSHA256.HashData(key,Encoding.UTF8.GetBytes(
       Schema+":"+sourceSha+":"+digest))).ToLowerInvariant();
-   File.WriteAllBytes(path+".proof.json",JsonSerializer.SerializeToUtf8Bytes(new{
+   using(var fs=new FileStream(path+".proof.json",FileMode.CreateNew,FileAccess.Write,FileShare.None))
+     fs.Write(JsonSerializer.SerializeToUtf8Bytes(new{
       schema=Schema+"-hmac.v1",source_sha256=sourceSha,receipt_sha256=digest,
       hmac_sha256=mac,read_only=true
    }));
