@@ -25,12 +25,12 @@ class NoviceDialogueHarnessTests(unittest.TestCase):
                 rows.append(fake(("A" if kind=="short" else "M" if kind=="medium" else "L")*size+str(k)))
         for month in ("2026-08","2026-09"):
             got=select(rows,month)
-            self.assertEqual(len(got),24)
+            self.assertEqual(len(got),12)
             self.assertEqual(Counter(stratum(x) for x in got),Counter(QUOTAS))
     def test_prompts_do_not_insert_historical_gold(self):
         text="Mi aplicación está fallando, no sé entrar."
         first=novice_prompt(text,1,[])
-        self.assertIn("persona principiante",first)
+        self.assertIn("No sé de informática",first)
         self.assertNotIn("DescripcionSolucion",first)
         prev=[{"proposal":{"diagnostico":"No está claro","pasos":[{"accion":"Comprueba la pantalla"}]}}]
         second=novice_prompt(text,2,prev)

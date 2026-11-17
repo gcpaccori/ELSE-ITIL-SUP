@@ -55,7 +55,7 @@ def one(row,model):
 def main():
     assert IN.is_file() and not PRIVATE.exists() and not PUBLIC.exists()
     rows=[json.loads(s) for s in IN.read_text().splitlines() if s]
-    assert len(rows)==48
+    assert len(rows)==24
     sys.path.insert(0,"/home/u23u/else_itil_outbound_dispatcher_20261110")
     from else_dominance.agent import OpenAICompatibleModel
     model=OpenAICompatibleModel("http://127.0.0.1:8003/v1","qwen35-4b",timeout=110)
@@ -69,7 +69,7 @@ def main():
                 results.append(result)
                 f.write(json.dumps(result,ensure_ascii=False)+"\n");f.flush()
                 if len(results)%8==0:
-                    print("JUDGE_PROGRESS",len(results),"/48",flush=True)
+                    print("JUDGE_PROGRESS",len(results),"/24",flush=True)
     monthly={}
     for month in ("2026-08","2026-09"):
         group=[r for r in results if r["month"]==month]

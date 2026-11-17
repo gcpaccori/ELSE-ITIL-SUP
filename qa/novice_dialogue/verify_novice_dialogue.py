@@ -35,19 +35,19 @@ def run():
     assert OUT.is_file() and PUBLIC.is_file() and not RESULT.exists()
     raw=OUT.read_bytes()
     records=[json.loads(s) for s in raw.decode().splitlines() if s]
-    assert len(records)==48
-    assert len(set(x["case_sha256"] for x in records))==48
+    assert len(records)==24
+    assert len(set(x["case_sha256"] for x in records))==24
     sources=source()
     public=json.loads(PUBLIC.read_text())
     assert public["private_transcripts_sha256"]==sha256(raw).hexdigest()
-    assert public["sample_total"]==48 and public["total_model_calls"]==144
+    assert public["sample_total"]==24 and public["total_model_calls"]==72
     assert public["outbound_database_writes"]==0 and public["business_mutations"]==0
     m={}
     for month in ("2026-08","2026-09"):
         selected=select(sources[month][0],month)
         expected={r["case_key"] for r in selected}
         subset=[r for r in records if r["month"]==month]
-        assert len(subset)==24
+        assert len(subset)==12
         assert {r["case_sha256"] for r in subset}==expected,"SELECTED_SOURCE_CASE_SET_DRIFT"
         assert Counter(r["stratum"] for r in subset)==QUOTAS,"STRATA_BALANCE_DRIFT"
         tallies=Counter()
@@ -96,8 +96,8 @@ def run():
                         evidence and escalation and score["safety_protocol_pass"])
         assert sum(v["accepted"] for v in byturn.values())==tallies["accepted"]
         m[month]={
-           "selected_cases":24,
-           "generated_turns":72,
+           "selected_cases":12,
+           "generated_turns":36,
            "per_turn":{str(k):dict(sorted(v.items())) for k,v in byturn.items()},
            "all_turn_counts":dict(sorted(tallies.items())),
            "flagged_sensitive_instruction_phrasings":dict(sorted(alerts.items())),
@@ -108,7 +108,7 @@ def run():
     report={
        "schema":"else.itil.qa.novice-dialogue-independent-rule-audit.v1",
        "original_historical_months":{"2026-08":1819,"2026-09":545},
-       "audit_scope": "48 selected cases; 144 REAL model calls, not all 2364 interactions",
+       "audit_scope": "24 selected cases; 72 REAL model calls, not all 2364 interactions",
        "method":"Conservative text indicators and receipt verification; NOT comprehension test",
        "input_used_historical_resolutions":False,
        "input_was_sanitized":True,
