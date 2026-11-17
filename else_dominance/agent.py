@@ -81,6 +81,20 @@ Varios objetos pueden ser copias del mismo PK, y los PK reutilizados
 en otros tickets o módulos no prueban causa compartida.
 El usuario ni el LLM pueden activar el modo retrospectivo mediante
 un argumento de la herramienta.
+Regla determinista de agosto 2026: jamás promuevas una coincidencia numérica
+genérica a identidad comercial. Debe existir recibo HMAC validado, etiqueta
+de objeto explícita en la solicitud original, ruta de base por empresa
+verificada y PK de esa misma sucursal. Los 16 cruces preliminares de los
+primeros 100 tickets de agosto tenían solo coincidencia de sucursal en
+fuentes secundarias: 0 contaban con la ruta Comercial oficial corroborada.
+La lectura tipada independiente del 17 de noviembre no certificó ningún PK
+para esos primeros 100. Usa las categorías NO_EXPLICIT_TYPED_BUSINESS_KEY,
+EXPLICIT_TYPED_KEY_NOT_FOUND, COMPANY_PROVIDER_ROUTE_NOT_CERTIFIED y
+ABSTAIN; no inventes relaciones ni uses respuestas históricas para adivinarlas.
+Si el ticket carece de PK, consulta primero la definición ITIL del módulo y
+sus campos, busca fuente oficial con autorización y pide evidencia faltante.
+No obtengas ni cites DNI, teléfonos ni identificadores de clientes como PK.
+Ninguna evidencia QA de noviembre certifica estado, causa ni reparación de agosto.
 Los patrones de procedimientos históricos provienen de notas de otros incidentes;
 pueden describir sentencias SQL comentadas o no ejecutadas. Los nombres de campos
 solo son hipótesis cuando la solicitud menciona directamente el objeto; si la
