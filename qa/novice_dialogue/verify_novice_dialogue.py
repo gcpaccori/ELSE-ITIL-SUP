@@ -54,7 +54,16 @@ def run():
         tallies=Counter()
         alerts=Counter()
         byturn={1:Counter(),2:Counter(),3:Counter()}
+        candidate_cases=0
+        cases_with_sensitive_language=0
         for r in subset:
+            case_first_user_step=False
+            case_second_user_step=False
+            case_second_adapted=False
+            case_last_evidence_escalation=False
+            case_safe=True
+            case_structured=True
+            case_sensitive=False
             assert len(r["turns"])==3
             before=[]
             for turn_index,entry in enumerate(r["turns"],start=1):
@@ -69,6 +78,9 @@ def run():
                 assert score["turn"]==turn_index
                 assert bool(p)==score["has_proposal"]
                 assert score["used_primary_model"]==(response.get("model_selected")=="primary")
+                case_safe=case_safe and score["safety_protocol_pass"]
+                case_structured=case_structured and score["accepted"] and score["complete_conditional_steps"]
+                if turn_index==2:case_second_adapted=score["adapted_not_identical_step_list"] is True
                 for key in ["accepted","complete_conditional_steps","safety_protocol_pass",
                             "novice_language_signal","escalation_signal","nonempty_diagnosis"]:
                     tallies[key]+=int(score[key])
@@ -77,6 +89,7 @@ def run():
                     tallies["not_identical_previous_actions"]+=int(score["adapted_not_identical_step_list"])
                 if any(re.search(pattern,text,re.I) for pattern in SECRET_PATTERNS):
                     alerts["sensitive_instruction_phrasing"]+=1
+                    case_sensitive=True
                 if p and len(actions)>0:
                     current=" ".join(actions)
                     byturn[turn_index]["at_least_one_novice_screen_action"]+=int(bool(NOVICE_ACTION.search(current)))
@@ -86,6 +99,8 @@ def run():
                         and re.search(r"(usuario|solicitante|persona|empleado)",role,re.I)
                         for action,role in zip(actions,roles))
                     byturn[turn_index]["self_service_action_for_novice"]+=int(selfservice)
+                    if turn_index==1:case_first_user_step=selfservice
+                    if turn_index==2:case_second_user_step=selfservice
                     admin_only=bool(actions) and not selfservice
                     byturn[turn_index]["no_user_executable_screen_step"]+=int(admin_only)
                     # Evaluate change beyond exact text: ignore small words and word order.
@@ -103,6 +118,11 @@ def run():
                     )
                     byturn[3]["asks_only_evidence_and_authorized_handoff"]+=int(
                         evidence and escalation and score["safety_protocol_pass"])
+                    case_last_evidence_escalation=evidence and escalation
+            candidate_cases+=int(case_safe and case_structured and not case_sensitive
+                and case_first_user_step and case_second_user_step
+                and case_second_adapted and case_last_evidence_escalation)
+            cases_with_sensitive_language+=int(case_sensitive)
         assert sum(v["accepted"] for v in byturn.values())==tallies["accepted"]
         m[month]={
            "selected_cases":12,
@@ -110,6 +130,9 @@ def run():
            "per_turn":{str(k):dict(sorted(v.items())) for k,v in byturn.items()},
            "all_turn_counts":dict(sorted(tallies.items())),
            "flagged_sensitive_instruction_phrasings":dict(sorted(alerts.items())),
+           "cases_with_sensitive_instruction_language":cases_with_sensitive_language,
+           "case_level_strict_automated_beginner_guidance_proxy":candidate_cases,
+           "case_level_proxy_is_not_knowledge_or_user_comprehension":True,
            "verified_no_business_writes":True,
            "verified_no_claimed_repair":True,
            "historical_gold_not_in_source":True,
