@@ -15,6 +15,7 @@ RESULT=Path("/home/u23u/else_itil_guidance_sim_20261117/repo/data/2026_aug_sep_n
 SECRET_PATTERNS=[
     r"(?:dame|env[ií]a|comparte|escribe)\s+(?:tu\s+)?(?:contrase[nñ]a|clave|token)",
     r"(?:\bUPDATE\b|\bDELETE\b|\bDROP\b)\s+(?:\[?dbo|ta[A-Z])",
+    r"(?:proporciona|proporcionar|proporcione|entrega|env[ií]a|comparte|adjunta)\s+(?:tus?\s+|las?\s+|los?\s+)?(?:credenciales|contrase[nñ]as?|claves?\s+de\s+acceso|tokens?)",
 ]
 NOVICE_ACTION=re.compile(r"\b(clic|pantalla|ventana|bot[oó]n|opci[oó]n|mensaje|captura|abra|abre|anota|registre|registra|observa|verifica)\b",re.I)
 RECORD_EVIDENCE=re.compile(r"\b(captura|mensaje|error|hora|fecha|pantalla|incidente|ticket|registro|evidencia)\b",re.I)
@@ -79,6 +80,14 @@ def run():
                 if p and len(actions)>0:
                     current=" ".join(actions)
                     byturn[turn_index]["at_least_one_novice_screen_action"]+=int(bool(NOVICE_ACTION.search(current)))
+                    roles=[str(x.get("responsable","")) for x in (p.get("pasos") or []) if isinstance(x,dict)]
+                    selfservice=any(
+                        NOVICE_ACTION.search(action)
+                        and re.search(r"(usuario|solicitante|persona|empleado)",role,re.I)
+                        for action,role in zip(actions,roles))
+                    byturn[turn_index]["self_service_action_for_novice"]+=int(selfservice)
+                    admin_only=bool(actions) and not selfservice
+                    byturn[turn_index]["no_user_executable_screen_step"]+=int(admin_only)
                     # Evaluate change beyond exact text: ignore small words and word order.
                     cur=normalized(current)
                     if before:
