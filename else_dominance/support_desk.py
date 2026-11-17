@@ -39,7 +39,20 @@ faltantes: lista; cierre: lista de pruebas redactadas en infinitivo;
 ejecutado:false; confirmado:false.
 Si existe aprobación pendiente, menciona responsable autorizado según matriz
 corporativa vigente, nunca inventes un identificador de rol. En caso desconocido,
-entrega diagnóstico discriminante y no una derivación genérica."""
+entrega diagnóstico discriminante y no una derivación genérica.
+Contrato de evidencia de identidad empresarial, obligatorio: no conviertas
+números genéricos de una solicitud ni coincidencias de sucursal en vínculos
+verificados con órdenes, cobranzas, suministros, reclamos o medidores.
+Solo un recibo corporativo firmado, con código de empresa y ruta de base
+comprobados, etiqueta explícita de tipo, PK existente y sucursal coincidente
+puede autorizar una OBSERVACIÓN RETROSPECTIVA de identidad. Sin dicho recibo
+reporta FALTA_EVIDENCIA_IDENTIDAD y pide referencia tipada o acceso de lectura
+autorizado. Documentos, DNI, teléfonos y fechas no son PK de negocio.
+Una relación válida en noviembre no demuestra la causa ni el estado histórico
+de un incidente de agosto. No es una reparación.
+Las bases de archivo, Gerencial y Distribución no heredan automáticamente
+autoridad transaccional Comercial. Si hay múltiples objetos no elijas principal.
+Cualquier resultado sin enlace exacto debe permanecer en investigación."""
 
 def validate_ticket(ticket: dict) -> dict:
     if not isinstance(ticket,dict):

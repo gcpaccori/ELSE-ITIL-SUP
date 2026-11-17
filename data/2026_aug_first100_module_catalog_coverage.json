@@ -1,0 +1,17 @@
+{
+  "schema": "else.itil.qa.aug2026-first100-module-candidate-metadata.v1",
+  "cases": 100,
+  "unique_source_module_codes": 40,
+  "counts": {
+    "candidate_csharp_present": 60,
+    "candidate_repository_present": 62,
+    "database_alias_declared": 63,
+    "module_directory_match": 100
+  },
+  "atlas_runtime_modules_not_deployment_verified": true,
+  "declared_database_alias_not_equivalent_to_physical_database": true,
+  "csharp_repository_not_verified_runtime_version": true,
+  "repair_or_business_link_proven": false,
+  "historical_solution_not_read": true,
+  "qa_atlas_sha256": "7de662b8a0687bd138f944846c0a945b7fd8b91ff06b8af45c6240fc5190b059"
+}
