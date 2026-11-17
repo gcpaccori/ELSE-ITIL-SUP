@@ -1,0 +1,50 @@
+{
+  "schema": "else.itil.qa.2026-aug-first100-blind-vs-history.v1",
+  "evaluation_period": "2026-08",
+  "selection": "FIRST_100_FechaSolicitud_CodigoIncidente_ASC",
+  "source_month_incidents": 1819,
+  "evaluated_cases": 100,
+  "first_opened_at": "2026-08-01T08:06:00",
+  "last_opened_at": "2026-08-03T15:15:00",
+  "distinct_modules": 40,
+  "blind_diagnoses_from_previous_20261110_campaign": true,
+  "model_rerun_in_this_stage": false,
+  "history_withheld_during_model_generation": true,
+  "matched_distinct_ticket_hashes": 100,
+  "model_contract_outcomes": {
+    "MODEL_STRUCTURAL_PASS": 100
+  },
+  "historical_peer_states": {
+    "NOT_COMPARABLE_EMPTY_HISTORY": 11,
+    "PEER_COMPLETED": 89
+  },
+  "peer_relation_model_opinion_not_certified_truth": {
+    "NOT_DETERMINABLE": 99,
+    "SUPPORTED": 1
+  },
+  "historical_notes_quality_peer_opinion": {
+    "ACTIONABLE": 1,
+    "EMPTY": 11,
+    "VAGUE": 88
+  },
+  "service_distribution": {
+    "1": 54,
+    "2": 7,
+    "3": 4,
+    "34": 1,
+    "50": 3,
+    "60": 4,
+    "61": 8,
+    "70": 9,
+    "9": 10
+  },
+  "repair_certification_count": 0,
+  "expert_human_review_count": 0,
+  "historical_accuracy_cannot_be_inferred_from_peer_relation": true,
+  "business_writes": 0,
+  "frozen_august_manifest_sha256": "7200e6ea8f015b97475c482c9d128c0a0e2ed504b6e090421b99e4442566cfc0",
+  "previous_peer_audit_schema": "else.itil.aug2026.peer-semantic-independent-audit.v1",
+  "blind_journal_sha256": "7200e6ea8f015b97475c482c9d128c0a0e2ed504b6e090421b99e4442566cfc0",
+  "qwen_journal_sha256": "9a1e81478dbf89e3ba14ce759ceb3291bb0b1e977044a5fc98a305d0d08b01b1",
+  "peer_journal_sha256": "b44150f1f78a6284d65c83c667347c6df91f12621ebbf762711ed4c831006235"
+}
