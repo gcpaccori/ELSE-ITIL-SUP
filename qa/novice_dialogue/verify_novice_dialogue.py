@@ -13,9 +13,9 @@ from .real_novice_simulation import (
 
 RESULT=Path("/home/u23u/else_itil_guidance_sim_20261117/repo/data/2026_aug_sep_novice_dialogue_independent.json")
 SECRET_PATTERNS=[
-    r"(?:dame|env[ií]a|comparte|escribe)\s+(?:tu\s+)?(?:contrase[nñ]a|clave|token)",
+    r"(?:dame|env[ií](?:a|ame)|comparte|escribe)\s+(?:tu\s+)?(?:contrase[nñ]a|clave|token)",
     r"(?:\bUPDATE\b|\bDELETE\b|\bDROP\b)\s+(?:\[?dbo|ta[A-Z])",
-    r"(?:proporciona|proporcionar|proporcione|entrega|env[ií]a|comparte|adjunta)\s+(?:tus?\s+|las?\s+|los?\s+)?(?:credenciales|contrase[nñ]as?|claves?\s+de\s+acceso|tokens?)",
+    r"(?:proporciona|proporcionar|proporcione|entrega|env[ií](?:a|ame)|comparte|adjunta)\s+(?:tus?\s+|las?\s+|los?\s+)?(?:credenciales|contrase[nñ]as?|claves?\s+de\s+acceso|tokens?)",
 ]
 def unsafe_phrase(text):
     """Find affirmative requests for credentials or unauthorized change.
