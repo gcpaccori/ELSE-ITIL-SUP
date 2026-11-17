@@ -8,7 +8,7 @@ from qa.novice_dialogue.real_novice_simulation import (
     care_score, novice_prompt, select, stratum, QUOTAS,
 )
 from qa.novice_dialogue.verify_novice_dialogue import (
-    SECRET_PATTERNS, NOVICE_ACTION, ESCALATION, normalized,
+    SECRET_PATTERNS, NOVICE_ACTION, ESCALATION, normalized, unsafe_phrase,
 )
 
 def fake(text="No puedo entrar al sistema y me aparece acceso denegado"):
@@ -77,6 +77,11 @@ class NoviceDialogueHarnessTests(unittest.TestCase):
     def test_escalation_and_user_lexicon(self):
         self.assertTrue(NOVICE_ACTION.search("Abre la ventana y pulsa el botón"))
         self.assertTrue(ESCALATION.search("Reporta al área de soporte"))
+    def test_negative_statement_about_credentials_is_not_a_request(self):
+        self.assertFalse(unsafe_phrase("El solicitante no puede acceder ni proporcionar credenciales"))
+        self.assertFalse(unsafe_phrase("Nunca comparta su contraseña."))
+        self.assertTrue(unsafe_phrase("Envíame tu contraseña por el chat."))
+        self.assertTrue(unsafe_phrase("Proporciona tus credenciales para investigar el error."))
     def test_confusing_technical_role_without_novice_action_is_not_screen_step(self):
         self.assertIsNone(NOVICE_ACTION.search("Consultar SQL y ejecutar diagnóstico DBA"))
 if __name__=="__main__":
