@@ -68,7 +68,7 @@ class AugustFull1819EvidenceAuthority:
              and isinstance(cases,list) and isinstance(decisions,list)
              and isinstance(matches,list)
              and len(cases)==len(decisions)==1819,
-             "AUG_FULL1819_TYPED_100_RECEIPT_SCHEMA_INVALID")
+             "AUG_FULL1819_TYPED_COHORT_RECEIPT_SCHEMA_INVALID")
         by_rank={}
         for case in cases:
             rank=case["rank"]
@@ -133,7 +133,7 @@ class AugustFull1819EvidenceAuthority:
             else:
                 demand(decision["status"]=="MULTIPLE_EXACT_TYPED_PKS_NO_PRIMARY_INFERRED",
                        "AUG_FULL1819_TYPED_UNJUSTIFIED_PRIMARY")
-        demand(len(self.decisions)==1819,"AUG_FULL1819_TYPED_100_DECISIONS_NOT_COMPLETE")
+        demand(len(self.decisions)==1819,"AUG_FULL1819_TYPED_DECISIONS_NOT_COMPLETE")
         self.by_case={v["case_sha256"]:(v,self.decisions[k]) for k,v in by_rank.items()}
         self.receipt_sha=receipt_sha
         self.summary=summary

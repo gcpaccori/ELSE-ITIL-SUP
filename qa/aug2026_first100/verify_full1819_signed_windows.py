@@ -10,11 +10,11 @@ import sys
 
 ROOT=Path(r"C:\Temp\ELSE_ITIL_AUG_FULL1819_20261117")
 sys.path.insert(0,str(ROOT))
-from qa_august_full1819_identity_authority import from_fullmonth_windows_paths
+from qa_august_full1819_identity_authority import from_full1819_windows_paths
 
 
 def main():
-    validator=from_fullmonth_windows_paths(
+    validator=from_full1819_windows_paths(
         receipt=ROOT/"aug_full1819_company_typed.private.json",
         proof=ROOT/"aug_full1819_company_typed.private.json.proof.json",
         source_reader=ROOT/"AugFullMonthTypedRead.cs",
