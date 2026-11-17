@@ -39,6 +39,11 @@ def assess(plan,accepted):
     alltext=" ".join([diag,*map(str,hypotheses),*map(str,faltantes),*[
       " ".join(str(s.get(k,"")) for k in ("accion","condicion","responsable","verificacion"))
       for s in allsteps]])
+    has_role_for_end_user=any(USER.search(str(st.get("responsable",""))) for st in allsteps)
+    has_screen_action=any(VISIBLE.search(str(st.get("accion",""))) for st in allsteps)
+    role_pending_all=bool(allsteps) and all(
+       str(st.get("responsable","")).strip()=="Responsable autorizado por confirmar"
+       for st in allsteps)
     user_checks=[]
     for s in allsteps:
         action=str(s.get("accion") or "")
@@ -62,6 +67,9 @@ def assess(plan,accepted):
          len(str(s.get("condicion","")).strip())>=12 and
          len(str(s.get("verificacion","")).strip())>=12 for s in allsteps),
        "has_user_screen_check":bool(user_checks),
+       "has_end_user_assigned_role_pattern":has_role_for_end_user,
+       "has_any_screen_action_word":has_screen_action,
+       "all_steps_have_unassigned_authorized_role":role_pending_all,
        "has_result_branching":branches and verifications>=2,
        "has_observable_result":verifications>=1,
        "has_user_friendly_evidence_request":bool(EVIDENCE.search(" ".join(map(str,faltantes)))),
