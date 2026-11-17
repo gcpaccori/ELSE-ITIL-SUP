@@ -39,7 +39,7 @@ Cada incidente seleccionado se presenta al soporte real a través del código op
 
 El proceso utiliza **el modelo real de Qwen**, no respuestas pregrabadas. Pero las respuestas del usuario son **sintéticas**: nadie operó un dispositivo real ni comprobó que la causa sugerida fuese verdadera. El servicio no conserva el contexto y el runner debe proporcionarlo de nuevo.
 
-La ejecución final generó **72 respuestas auténticas de Qwen** para **24 casos** (12 por mes, 3 turnos), bajo el código de atención del servicio. Las tres respuestas por caso se cuentan incluso si algún turno fue rechazado y se registra explícitamente ese rechazo. No se atribuye ejecución en sistemas.
+La ejecución final realizó **72 turnos de consulta reales al sistema con Qwen** para **24 casos** (69 con propuesta aceptada y 3 sin aprobación del gate) (12 por mes, 3 turnos), bajo el código de atención del servicio. Las tres respuestas por caso se cuentan incluso si algún turno fue rechazado y se registra explícitamente ese rechazo. No se atribuye ejecución en sistemas.
 
 | Prueba de interacción | Agosto (12 casos) | Septiembre (12 casos) |
 |---|---:|---:|
