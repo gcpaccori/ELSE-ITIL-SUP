@@ -10,7 +10,7 @@ class ModelProtocolTests(unittest.TestCase):
         message=support_desk.SYSTEM
         for phrase in ("recibo corporativo firmado","ruta de base",
                        "PK existente","sucursal coincidente",
-                       "no elijas principal","ni una reparación"):
+                       "no elijas principal","No es una reparación"):
             self.assertIn(phrase,message)
 
     def test_investigation_prompt_downgrades_legacy_sixteen(self):

@@ -62,7 +62,7 @@ class August100EvidenceAuthority:
         matches=payload.get("typed_matches")
         demand(isinstance(summary,dict) and summary.get("evaluated_cases")==100
              and summary.get("source_cases")==1819
-             and summary.get("historical_solution_not_read") is not False
+             and summary.get("solution_read") is False
              and summary.get("typed_labels_used_no_history") is True
              and summary.get("legacy_generic_cross_db_matches_are_not_promoted_to_authority") is True
              and isinstance(cases,list) and isinstance(decisions,list)

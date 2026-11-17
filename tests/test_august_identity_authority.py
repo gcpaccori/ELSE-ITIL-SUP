@@ -38,7 +38,7 @@ def fixture():
             "source_sha256":"a"*64,
             "report":{
                 "evaluated_cases":100,"source_cases":1819,
-                "typed_labels_used_no_history":True,
+                "solution_read":False,"typed_labels_used_no_history":True,
                 "legacy_generic_cross_db_matches_are_not_promoted_to_authority":True,
             },
             "case_metadata":cases,"case_decisions":decisions,
