@@ -68,7 +68,7 @@ internal static class AugFirst100PkRead {
    var xml=XDocument.Load(@"D:\SitiosWeb\appsrvdev.else.com.pe\wApiSIELSESeguridad\www\web.config");
    string config=xml.Descendants("connectionStrings").Descendants("add")
        .Where(x=>(string?)x.Attribute("name")=="ConexionSIELSE")
-       .Select(x=>(string?)x.Attribute("connectionString")).Single();
+       .Select(x=>(string?)x.Attribute("connectionString")).SingleOrDefault()??throw new InvalidOperationException("QA_MISSING_CONNECTOR_ROOT");
    Need(config.Contains("ELSE70",StringComparison.OrdinalIgnoreCase)
       &&config.Contains("dbSeguridad_D",StringComparison.OrdinalIgnoreCase),
       "NOT_QA_CONNECTOR");
@@ -100,14 +100,13 @@ internal static class AugFirst100PkRead {
       string ticketSha=Hash(Val(row,"CodigoIncidente"));
       string req=Val(row,"request_text");
       string openedAt=((DateTime)row["FechaSolicitud"]).ToString("yyyy-MM-ddTHH:mm:ss",CultureInfo.InvariantCulture);
-      string module=Val(row,"CodigoModulo").TrimEnd();
-      string service=Val(row,"CodigoServicio").TrimEnd();
-      Need(expected.GetProperty("case_sha256").GetString()==ticketSha
-        &&expected.GetProperty("opened_at").GetString()==openedAt
-        &&expected.GetProperty("service_code").GetString()==service
-        &&expected.GetProperty("module_code").GetString()==module
-        &&expected.GetProperty("incident_text").GetString()==req,
-        "AUG_FIRST100_LIVE_TICKET_NOT_FROZEN_IDENTITY");
+      string module=Val(row,"CodigoModulo");
+      string service=Val(row,"CodigoServicio");
+      Need(expected.GetProperty("case_sha256").GetString()==ticketSha, "AUG_CASE_ID_SHA_MISMATCH");
+      Need(expected.GetProperty("opened_at").GetString()==openedAt, "AUG_CASE_DATE_MISMATCH");
+      Need(expected.GetProperty("service_code").GetString()==service, "AUG_CASE_SERVICE_MISMATCH");
+      Need(expected.GetProperty("module_code").GetString()==module, "AUG_CASE_MODULE_MISMATCH");
+      Need(expected.GetProperty("incident_text").GetString()==req, "AUG_CASE_TEXT_MISMATCH");
       var candidates=new HashSet<long>();
       foreach(Match m in Regex.Matches(req,@"(?<!\d)\d{19}(?!\d)",RegexOptions.CultureInvariant)){
          if(long.TryParse(m.Value,NumberStyles.None,CultureInfo.InvariantCulture,out long v))
