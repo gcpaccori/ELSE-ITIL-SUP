@@ -1,0 +1,140 @@
+{
+  "audit_scope": "24 selected cases; 72 REAL model calls, not all 2364 interactions",
+  "business_mutations": 0,
+  "human_expert_rating": false,
+  "input_used_historical_resolutions": false,
+  "input_was_sanitized": true,
+  "live_service_native_dialogue_support": false,
+  "method": "Conservative text indicators and receipt verification; NOT comprehension test",
+  "monthly": {
+    "2026-08": {
+      "all_turn_counts": {
+        "accepted": 36,
+        "complete_conditional_steps": 36,
+        "escalation_signal": 28,
+        "nonempty_diagnosis": 36,
+        "not_identical_previous_actions": 24,
+        "novice_language_signal": 11,
+        "safety_protocol_pass": 36
+      },
+      "case_level_proxy_is_not_knowledge_or_user_comprehension": true,
+      "case_level_strict_automated_beginner_guidance_proxy": 1,
+      "cases_with_sensitive_instruction_language": 0,
+      "flagged_sensitive_instruction_phrasings": {},
+      "generated_turns": 36,
+      "historical_gold_not_in_source": true,
+      "per_turn": {
+        "1": {
+          "accepted": 12,
+          "at_least_one_novice_screen_action": 1,
+          "complete_conditional_steps": 12,
+          "escalation_signal": 9,
+          "no_user_executable_screen_step": 11,
+          "nonempty_diagnosis": 12,
+          "novice_language_signal": 3,
+          "safety_protocol_pass": 12,
+          "self_service_action_for_novice": 1
+        },
+        "2": {
+          "accepted": 12,
+          "at_least_one_novice_screen_action": 4,
+          "complete_conditional_steps": 12,
+          "escalation_signal": 8,
+          "lexically_distinct_action": 12,
+          "no_user_executable_screen_step": 9,
+          "nonempty_diagnosis": 12,
+          "novice_language_signal": 5,
+          "safety_protocol_pass": 12,
+          "self_service_action_for_novice": 3
+        },
+        "3": {
+          "accepted": 12,
+          "asks_only_evidence_and_authorized_handoff": 10,
+          "at_least_one_novice_screen_action": 2,
+          "complete_conditional_steps": 12,
+          "escalation_signal": 11,
+          "evidence_plus_escalation": 10,
+          "lexically_distinct_action": 12,
+          "no_admin_requests_final": 12,
+          "no_user_executable_screen_step": 10,
+          "nonempty_diagnosis": 12,
+          "novice_language_signal": 3,
+          "safety_protocol_pass": 12,
+          "self_service_action_for_novice": 2
+        }
+      },
+      "selected_cases": 12,
+      "verified_no_business_writes": true,
+      "verified_no_claimed_repair": true
+    },
+    "2026-09": {
+      "all_turn_counts": {
+        "accepted": 33,
+        "complete_conditional_steps": 33,
+        "escalation_signal": 23,
+        "nonempty_diagnosis": 33,
+        "not_identical_previous_actions": 24,
+        "novice_language_signal": 11,
+        "safety_protocol_pass": 33
+      },
+      "case_level_proxy_is_not_knowledge_or_user_comprehension": true,
+      "case_level_strict_automated_beginner_guidance_proxy": 0,
+      "cases_with_sensitive_instruction_language": 0,
+      "flagged_sensitive_instruction_phrasings": {},
+      "generated_turns": 36,
+      "historical_gold_not_in_source": true,
+      "per_turn": {
+        "1": {
+          "accepted": 10,
+          "at_least_one_novice_screen_action": 1,
+          "complete_conditional_steps": 10,
+          "escalation_signal": 6,
+          "no_user_executable_screen_step": 10,
+          "nonempty_diagnosis": 10,
+          "novice_language_signal": 3,
+          "safety_protocol_pass": 10,
+          "self_service_action_for_novice": 0
+        },
+        "2": {
+          "accepted": 12,
+          "at_least_one_novice_screen_action": 3,
+          "complete_conditional_steps": 12,
+          "escalation_signal": 7,
+          "lexically_distinct_action": 10,
+          "no_user_executable_screen_step": 9,
+          "nonempty_diagnosis": 12,
+          "novice_language_signal": 4,
+          "safety_protocol_pass": 12,
+          "self_service_action_for_novice": 3
+        },
+        "3": {
+          "accepted": 11,
+          "asks_only_evidence_and_authorized_handoff": 8,
+          "at_least_one_novice_screen_action": 3,
+          "complete_conditional_steps": 11,
+          "escalation_signal": 10,
+          "evidence_plus_escalation": 8,
+          "lexically_distinct_action": 11,
+          "no_admin_requests_final": 12,
+          "no_user_executable_screen_step": 9,
+          "nonempty_diagnosis": 11,
+          "novice_language_signal": 4,
+          "safety_protocol_pass": 11,
+          "self_service_action_for_novice": 2
+        }
+      },
+      "selected_cases": 12,
+      "verified_no_business_writes": true,
+      "verified_no_claimed_repair": true
+    }
+  },
+  "original_historical_months": {
+    "2026-08": 1819,
+    "2026-09": 545
+  },
+  "privacy": "No ticket text, names, PKs, passwords or original responses exported",
+  "schema": "else.itil.qa.novice-dialogue-independent-rule-audit.v1",
+  "technical_diagnostic_accuracy_measured": false,
+  "transcripts_private_sha256": "f74cfe287d61d99919aa7a065831ac7733d0fbcb884a742c46d030212b11225e",
+  "user_statements_synthetic": true
+}

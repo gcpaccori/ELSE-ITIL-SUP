@@ -1,0 +1,66 @@
+{
+  "business_writes": 0,
+  "by_month": {
+    "2026-08": {
+      "evaluated_plan_receipts": 1819,
+      "historical_solution_used_as_truth": false,
+      "human_reviewed": false,
+      "metrics": {
+        "all_steps_have_unassigned_authorized_role": 1814,
+        "claim_no_changes": 1814,
+        "has_2_or_more_hypotheses": 1810,
+        "has_any_screen_action_word": 466,
+        "has_condition_and_result_steps": 1814,
+        "has_end_user_assigned_role_pattern": 0,
+        "has_observable_result": 1814,
+        "has_result_branching": 406,
+        "has_user_friendly_evidence_request": 292,
+        "has_user_screen_check": 0,
+        "limited_technical_jargon_proxy": 1617,
+        "nonempty_diagnosis": 1814,
+        "sensitive_directive_flag": 3,
+        "strict_beginner_one_shot_proxy": 0,
+        "structural_accepted": 1810
+      },
+      "source_cases": 1819,
+      "source_receipts_sha256": "9a1e81478dbf89e3ba14ce759ceb3291bb0b1e977044a5fc98a305d0d08b01b1"
+    },
+    "2026-09": {
+      "evaluated_plan_receipts": 545,
+      "historical_solution_used_as_truth": false,
+      "human_reviewed": false,
+      "metrics": {
+        "all_steps_have_unassigned_authorized_role": 0,
+        "claim_no_changes": 543,
+        "has_2_or_more_hypotheses": 543,
+        "has_any_screen_action_word": 229,
+        "has_condition_and_result_steps": 543,
+        "has_end_user_assigned_role_pattern": 80,
+        "has_observable_result": 543,
+        "has_result_branching": 543,
+        "has_user_friendly_evidence_request": 190,
+        "has_user_screen_check": 5,
+        "limited_technical_jargon_proxy": 436,
+        "nonempty_diagnosis": 543,
+        "sensitive_directive_flag": 0,
+        "strict_beginner_one_shot_proxy": 5,
+        "structural_accepted": 508
+      },
+      "source_cases": 545,
+      "source_receipts_sha256": "a7a69ec49f0d3e6cc24daf4c5200b8bd7716ea23570b79833809e297e5ca366d"
+    }
+  },
+  "conversational_adaptation_measured_here": false,
+  "diagnostic_accuracy_measured": false,
+  "human_novice_comprehension_measured": false,
+  "input_months": [
+    "2026-08",
+    "2026-09"
+  ],
+  "input_source": "historical Qwen9B plans, not new model generations",
+  "metric_strict_proxy_is_not_success_rate": true,
+  "no_historical_gold_leak": true,
+  "same_text_rubric_for_both_months": true,
+  "schema": "else.itil.qa.aug-sep2026-full2364-beginner-guide-v1",
+  "source_total": 2364
+}
