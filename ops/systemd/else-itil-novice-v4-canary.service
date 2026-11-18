@@ -1,0 +1,13 @@
+[Unit]
+Description=ELSE-ITIL V4 supervised novice guidance canary, no repairs
+After=network.target
+[Service]
+Type=simple
+WorkingDirectory=/home/u23u/else_itil_guided_v4_20261118/release_main
+ExecStart=/bin/bash /home/u23u/else_itil_guided_v4_20261118/release_main/ops/run_specialist_v4_canary.sh
+Restart=on-failure
+RestartSec=10
+UMask=0077
+NoNewPrivileges=true
+[Install]
+WantedBy=default.target
