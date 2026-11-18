@@ -189,18 +189,36 @@ def generate_guidance(initial:str, service:str, reply:str, history:list[dict], m
           "observaciones_tecnicas_verificadas":"NINGUNA",
           "resultado_de_pruebas":"SOLO_LO_EXPRESAMENTE_INFORMADO_POR_USUARIO",
           "metodo":"Una sola prueba para usuario, dos resultados, el resto reservado a soporte"}
+    if len(history)>=2:
+        data["guidance_stage"]="FOLLOWUP_AFTER_UNRESOLVED_ISSUE"
+        data["specific_rule"]="No repetir el primer paso; cambiar a una comprobación discriminante accesible al usuario o reunir evidencia para soporte."
+    elif history:
+        data["guidance_stage"]="CLARIFY_LAST_ACTION_FOR_NONTECHNICAL_PERSON"
+        data["specific_rule"]="Explica el paso anterior con palabras más simples, sin pedir SQL, credenciales ni privilegios."
     issues=[]
-    for name,provider in (("primary",model),("fallback",fallback)):
+    # Primary receives one corrective re-attempt if its first response fails
+    # the deterministic contract; only then consider the independent fallback.
+    candidates=[("primary",model),("primary_retry",model),("fallback",fallback)]
+    for name,provider in candidates:
         if provider is None:continue
+        messages=[{"role":"system","content":GUIDANCE_SYSTEM},
+                  {"role":"user","content":json.dumps(data,ensure_ascii=False)}]
+        if name=="primary_retry":
+            feedback=issues[-1].get("flags",[]) if issues else []
+            messages.append({"role":"user","content":json.dumps({
+                "correccion_requerida":True,
+                "fallos_de_contrato":feedback,
+                "instruccion":"Vuelve a generar JSON con todas las claves exactas; una prueba no administrativa para la persona; resultados diferentes; sin repetir pasos anteriores ni confirmar causa.",
+            },ensure_ascii=False)})
         try:
-            raw=provider.complete([{"role":"system","content":GUIDANCE_SYSTEM},
-                {"role":"user","content":json.dumps(data,ensure_ascii=False)}])
+            raw=provider.complete(messages)
             proposal=json.loads(raw)
             flags=validate_guidance(proposal,prior)
             if not flags:
                 return {"status":"GUIDED_DIAGNOSTIC_CONDITIONAL",
                         "model_selected":name,"guide":proposal,
-                        "quality":{"accepted":True,"flags":[]},
+                        "quality":{"accepted":True,"flags":[],
+                                   "prior_rejections":issues},
                         "real_corporate_sources_queried":False,
                         "executed_changes":False,"diagnosis_certified":False}
             issues.append({"model":name,"flags":flags})

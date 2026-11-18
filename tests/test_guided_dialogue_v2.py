@@ -47,7 +47,11 @@ def test_safe_model_template_passes():
 
 def test_multi_turn_persistent_history_and_no_model_replay(tmp_path):
     store=GuidedStore(tmp_path/"guided.sqlite")
-    model=Model()
+    model=Model([
+      valid("Mira la pantalla donde aparece el problema y anota el mensaje visible."),
+      valid("Revisa en qué módulo estabas cuando apareció el aviso y anota su nombre."),
+      valid("Observa si el aviso aparece al abrir la aplicación o al entrar en una sección.")
+    ])
     first=store.start(ticket(),model)
     sid=first['session_id']
     assert first['status']=="GUIDED_DIAGNOSTIC_CONDITIONAL"
@@ -123,7 +127,7 @@ def test_unsafe_user_step_rejected(unsafe):
     obj=valid(unsafe)
     assert validate_guidance(obj),unsafe
     response=generate_guidance("Tengo un error en pantalla.","Prueba",
-                "No entiendo",[],Model([obj]),None)
+                "No entiendo",[],Model([obj,obj]),None)
     assert response['status']=='NEEDS_HUMAN_TRIAGE'
     assert not response['quality']['accepted']
     assert not response['executed_changes']
@@ -139,7 +143,7 @@ def test_repeated_action_blocked_when_history_present():
     p=valid()
     prev=[{"turn":1,"reply":"error inicial","guide":p}]
     x=generate_guidance("No puedo entrar al sistema.","Soporte",
-       "No entiendo la instrucción",prev,Model([p]))
+        "No entiendo la instrucción",prev,Model([p,p]))
     assert x['status']=='NEEDS_HUMAN_TRIAGE'
     assert 'REPEATED_PREVIOUS_STEP' in x['quality']['attempts'][0]['flags']
 
@@ -285,3 +289,17 @@ def test_http_unknown_fields_fail_closed(tmp_path):
         assert not (tmp_path/"guided.sqlite").exists()
     finally:
         server.shutdown();server.server_close();t.join(timeout=5)
+
+
+def test_invalid_primary_cannot_be_promoted_without_valid_corrective_response():
+    bad=valid("Ejecuta UPDATE en la base de datos para reparar la cuenta.")
+    good=valid("Busca la opción de ayuda en la pantalla y anota el aviso visible.")
+    provider=Model([bad,good])
+    result=generate_guidance("No puedo abrir una aplicación.","Soporte",
+                             "No entiendo.",[],provider)
+    assert result["status"]=="GUIDED_DIAGNOSTIC_CONDITIONAL"
+    assert result["model_selected"]=="primary_retry"
+    assert len(provider.messages)==2
+    assert result["quality"]["prior_rejections"]
+    assert not result["executed_changes"]
+    assert not result["diagnosis_certified"]
