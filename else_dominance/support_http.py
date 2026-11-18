@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from hashlib import sha256
 import hmac
 import json
 import secrets
@@ -15,6 +16,7 @@ from threading import Lock
 
 from .agent import OpenAICompatibleModel
 from .support_desk import make_attention, record_attention, validate_ticket
+from .guided_dialogue import GuidedStore
 from .qa_dispatch_queue import QaDispatchQueue, load_allowed, COHORTS, obj as strict_qa_json
 from .core_capability import ParetoInvestigationCore
 import re
@@ -23,8 +25,12 @@ import re
 def make_handler(*, token: str, state_db: Path, primary, fallback,
                  qa_queue_db: Path | None = None,
                  qa_allowlist: Path | None = None,
-                 qa_cohort: str="2026-09"):
+                 qa_cohort: str="2026-09",
+                 guided_db: Path | None = None):
     lock=Lock()
+    # Bounded striped locks: one session is sequential, unrelated cases are
+    # concurrent. The legacy /v1/support locking behavior remains unchanged.
+    guided_locks=tuple(Lock() for _ in range(64))
     if (qa_queue_db is None) != (qa_allowlist is None):
         raise ValueError("QA_DISPATCH_CONFIGURATION_INCOMPLETE")
     if qa_cohort not in COHORTS:
@@ -58,7 +64,8 @@ def make_handler(*, token: str, state_db: Path, primary, fallback,
             if self.path=='/health':
                 payload={'service':'ELSE-ITIL-SUP','state':'READY',
                          'source_access':'USER_SUBMITTED_ONLY',
-                         'repairs_enabled':False}
+                         'repairs_enabled':False,
+                         'guided_dialogue_enabled':guided_db is not None}
                 if allowed is not None:
                     payload['qa_dispatch']='QA_HISTORICAL_READY'
                 return self.respond(200,payload)
@@ -96,6 +103,47 @@ def make_handler(*, token: str, state_db: Path, primary, fallback,
             return self.respond(404,{'error':'NOT_FOUND'})
 
         def do_POST(self):
+            if self.path in ('/v1/support/guided/start',
+                             '/v1/support/guided/continue'):
+                if guided_db is None:
+                    return self.respond(404,{'error':'GUIDED_NOT_ENABLED'})
+                if not self.authorized():
+                    return self.respond(401,{'error':'AUTH_REQUIRED'})
+                try:
+                    size=int(self.headers.get('Content-Length','-1'))
+                    if not 0<size<=7000:
+                        return self.respond(413,{'error':'INPUT_LIMIT'})
+                    request=json.loads(self.rfile.read(size))
+                    if not isinstance(request,dict):
+                        raise ValueError('GUIDED_REQUEST_NOT_OBJECT')
+                    initial=self.path.endswith('/start')
+                    if initial and set(request) not in (
+                        {'case_ref','input_scope','description'},
+                        {'case_ref','input_scope','description','service'}):
+                        raise ValueError('GUIDED_START_FIELDS_INVALID')
+                    if not initial and set(request)!={'session_id','expected_turn','reply'}:
+                        raise ValueError('GUIDED_CONTINUE_FIELDS_INVALID')
+                    lock_key=(request['case_ref'] if initial else request['session_id'])
+                    if not isinstance(lock_key,str) or len(lock_key)>80:
+                        raise ValueError('GUIDED_LOCK_KEY_INVALID')
+                    stripe=int.from_bytes(sha256(lock_key.encode()).digest()[:2],
+                                          'big')%len(guided_locks)
+                    with guided_locks[stripe]:
+                        db=GuidedStore(guided_db)
+                        try:
+                            if initial:
+                                result=db.start(request,primary,fallback)
+                            else:
+                                result=db.continue_turn(
+                                    request['session_id'],request['expected_turn'],
+                                    request['reply'],primary,fallback)
+                        finally:
+                            db.close()
+                    return self.respond(200,result)
+                except (ValueError,TypeError,KeyError,json.JSONDecodeError) as exc:
+                    return self.respond(422,{'error':str(exc)[:90]})
+                except Exception:
+                    return self.respond(503,{'error':'GUIDED_SUPPORT_UNAVAILABLE'})
             if self.path=='/v1/qa/core/investigate':
                 if allowed is None:
                     return self.respond(404,{'error':'QA_DISPATCH_DISABLED'})
@@ -176,6 +224,8 @@ def main():
     p.add_argument('--qa-queue-db',type=Path,default=None)
     p.add_argument('--qa-allowlist',type=Path,default=None)
     p.add_argument('--qa-cohort',choices=sorted(COHORTS),default="2026-09")
+    p.add_argument('--guided-db',type=Path,default=None,
+                   help="Opt-in private SQLite session store for novice guidance")
     args=p.parse_args()
     if (args.qa_queue_db is None) != (args.qa_allowlist is None):
         p.error('QA_DISPATCH_CONFIGURATION_INCOMPLETE')
@@ -192,10 +242,11 @@ def main():
     server=ThreadingHTTPServer((args.host,args.port),make_handler(
         token=token,state_db=Path(args.db),primary=one,fallback=two,
         qa_queue_db=args.qa_queue_db,qa_allowlist=args.qa_allowlist,
-        qa_cohort=args.qa_cohort))
+        qa_cohort=args.qa_cohort,guided_db=args.guided_db))
     print('SUPPORT_API_READY host=127.0.0.1 port='+str(args.port)+
           ' mode=user_submitted_no_mutations qa_dispatch='+
-          str(args.qa_queue_db is not None),flush=True)
+          str(args.qa_queue_db is not None)+
+        ' guided='+str(args.guided_db is not None),flush=True)
     server.serve_forever(poll_interval=.5)
 
 if __name__=='__main__':

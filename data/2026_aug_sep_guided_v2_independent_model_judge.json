@@ -1,0 +1,68 @@
+{
+  "elapsed_seconds": 408.4,
+  "grade_rubric": "Identical eight text criteria; A/B order hash-balanced",
+  "historical_resolutions_exposed": false,
+  "human_experts_judging": 0,
+  "judge": "Qwen3.5-4B separate from generator, automated opinion",
+  "judge_receipts_sha256": "65d77ce9d63030d17b0f05d3cdd7ea4bda59f6f004f2d20d0edb1322a949c114",
+  "monthly": {
+    "2026-08": {
+      "cases": 12,
+      "judge_unscored": 9,
+      "judge_valid": 3,
+      "score_counts": {
+        "baseline_all_eight_pass": 0,
+        "baseline_claridad": 0,
+        "baseline_escalamiento_con_evidencia": 0,
+        "baseline_no_falsa_certeza": 3,
+        "baseline_no_pide_secretos_ni_cambios": 2,
+        "baseline_paso_usuario_no_admin": 0,
+        "baseline_responde_no_entiendo": 0,
+        "baseline_responde_sigue_fallando": 0,
+        "baseline_resultados_alternativos": 0,
+        "new_v2_all_eight_pass": 3,
+        "new_v2_claridad": 3,
+        "new_v2_escalamiento_con_evidencia": 3,
+        "new_v2_no_falsa_certeza": 3,
+        "new_v2_no_pide_secretos_ni_cambios": 3,
+        "new_v2_paso_usuario_no_admin": 3,
+        "new_v2_responde_no_entiendo": 3,
+        "new_v2_responde_sigue_fallando": 3,
+        "new_v2_resultados_alternativos": 3,
+        "prefer_new": 3
+      }
+    },
+    "2026-09": {
+      "cases": 12,
+      "judge_unscored": 9,
+      "judge_valid": 3,
+      "score_counts": {
+        "baseline_all_eight_pass": 0,
+        "baseline_claridad": 0,
+        "baseline_escalamiento_con_evidencia": 0,
+        "baseline_no_falsa_certeza": 3,
+        "baseline_no_pide_secretos_ni_cambios": 2,
+        "baseline_paso_usuario_no_admin": 0,
+        "baseline_responde_no_entiendo": 0,
+        "baseline_responde_sigue_fallando": 0,
+        "baseline_resultados_alternativos": 1,
+        "new_v2_all_eight_pass": 3,
+        "new_v2_claridad": 3,
+        "new_v2_escalamiento_con_evidencia": 3,
+        "new_v2_no_falsa_certeza": 3,
+        "new_v2_no_pide_secretos_ni_cambios": 3,
+        "new_v2_paso_usuario_no_admin": 3,
+        "new_v2_responde_no_entiendo": 3,
+        "new_v2_responde_sigue_fallando": 3,
+        "new_v2_resultados_alternativos": 3,
+        "prefer_new": 3
+      }
+    }
+  },
+  "not_a_blinded_independent_ground_truth": true,
+  "not_a_real_success_rate": true,
+  "paired_cases": 24,
+  "real_user_interviews": 0,
+  "schema": "else.itil.qa.paired-guidance-v2-qwen4b-judge.v1",
+  "verified_causal_diagnoses": 0
+}
