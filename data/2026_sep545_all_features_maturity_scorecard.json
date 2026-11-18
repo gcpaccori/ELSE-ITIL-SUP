@@ -1,0 +1,167 @@
+{
+  "business_writes": 0,
+  "date": "2026-11-18",
+  "decision": "NO",
+  "decision_label": "NOT_MATURE_ACROSS_ALL_CHARACTERISTICS",
+  "eligible_for_supervised_private_pilot": true,
+  "eligible_for_unsupervised_corporate_rollout": false,
+  "failure_gates": [
+    "no October 2026 incidents in the selected corporate QA ITIL data source",
+    "no independent adjudication of model causes against authoritative records",
+    "no real novice comprehension or user-observed outcomes",
+    "V4 three-turn gate acceptance 17/24 below prior V2 20/24",
+    "no demonstrated response-time SLO or HA/load maturity"
+  ],
+  "full_545_mechanical_sessions_with_stub": 545,
+  "full_545_mechanical_turns_stub_not_model": 1635,
+  "hmac_source_and_history_verified_on_windows": true,
+  "independently_certified_diagnoses": 0,
+  "individual_human_reviews": 0,
+  "latest_populated_month": "2026-09",
+  "limits": "Not a diagnostic accuracy score or evidence of business incidents being resolved",
+  "live_synthetic_case_only_not_business_grounded": true,
+  "maturity_domains": [
+    {
+      "area": "Corporate October 2026 intake freshness",
+      "evidence": "0 source incidents in October; November through 18 also 0; no proof of active ingestion",
+      "status": "FAIL"
+    },
+    {
+      "area": "Full latest-available September source provenance",
+      "evidence": "545/545 signed Windows SQL records; case identity binds to 545 old plans",
+      "status": "VERIFIED_MECHANISM"
+    },
+    {
+      "area": "One-shot archival Qwen plan generation",
+      "evidence": "543/545 completed; 508/545 structural approval; old model, not V4",
+      "status": "PARTIAL"
+    },
+    {
+      "area": "Safe step directed at beginner in archival corpus",
+      "evidence": "5/545 strict textual candidates under conservative rubric, not human success",
+      "status": "NOT_MATURE"
+    },
+    {
+      "area": "Current guided V4 model quality",
+      "evidence": "9/12 September three-turn complete, 17/24 August+September; regressed versus V2 20/24",
+      "status": "NOT_MATURE"
+    },
+    {
+      "area": "Guided session persistence and idempotency",
+      "evidence": "545/545 three-turn mechanical cases, 1635 stub outputs; synthetic live V4 replay",
+      "status": "VERIFIED_MECHANISM"
+    },
+    {
+      "area": "Plain-language presentation and feedback stages",
+      "evidence": "V4 text and stage checks, but novice comprehension never observed",
+      "status": "PARTIAL"
+    },
+    {
+      "area": "Deterministic escalation path to authorized support",
+      "evidence": "Third turn handoff visible 24/24 sampled conversations and live canary",
+      "status": "VERIFIED_MECHANISM"
+    },
+    {
+      "area": "Read-only guardrail and blocked automatic repair",
+      "evidence": "both services show repairs_enabled:false and zero QA writes",
+      "status": "VERIFIED_MECHANISM"
+    },
+    {
+      "area": "Service-level API authentication and replay guard",
+      "evidence": "401 unauthorized; changed replay 422; shared service token only",
+      "status": "VERIFIED_MECHANISM"
+    },
+    {
+      "area": "Individual user and ticket authorization",
+      "evidence": "no per-employee identity and no per-case authorization proven",
+      "status": "NOT_CERTIFIED"
+    },
+    {
+      "area": "Privacy, retention and incident confidentiality",
+      "evidence": "private signed receipts and redaction; independent privacy approval pending",
+      "status": "PARTIAL"
+    },
+    {
+      "area": "Corporate object/source grounding",
+      "evidence": "no exact live domain identity or historical root cause verified for all September cases",
+      "status": "NOT_CERTIFIED"
+    },
+    {
+      "area": "Diagnostic causal correctness",
+      "evidence": "0 independently adjudicated true root causes; prior historical solutions are not gold",
+      "status": "NOT_CERTIFIED"
+    },
+    {
+      "area": "Real novice comprehension and success",
+      "evidence": "0 verified real end-user guided tests",
+      "status": "NOT_CERTIFIED"
+    },
+    {
+      "area": "Module and service breadth",
+      "evidence": "105 observed module codes / 10 service codes, but coverage does not prove competence",
+      "status": "PARTIAL"
+    },
+    {
+      "area": "Conditional hypotheses and checks in archival plans",
+      "evidence": "543/545 plans show two hypotheses and result branches; no correct-cause validation",
+      "status": "PARTIAL"
+    },
+    {
+      "area": "Response-time and reliability maturity",
+      "evidence": "Real 72-turn V4 median 36.18s, p95 175.01s, max 180.41s; no proven SLO",
+      "status": "NOT_MATURE"
+    },
+    {
+      "area": "Concurrency, failover and production load",
+      "evidence": "unit concurrency tests exist; no independent production failover or full-month LLM load test",
+      "status": "NOT_CERTIFIED"
+    },
+    {
+      "area": "Read-only case/solution lifecycle evidence",
+      "evidence": "455 historical solutions and 382 closed flags from separate SQL; not verified AI outcomes",
+      "status": "PARTIAL"
+    }
+  ],
+  "private_sources_not_distributed": true,
+  "qwen_full545_guided_calls_made": 0,
+  "schema": "else.itil.qa.2026-sep545-maturity-decision.v1",
+  "september_all_incidents_bound": 545,
+  "september_archived_beginner_proxy": 5,
+  "september_archived_branches": 543,
+  "september_archived_evidence_request": 190,
+  "september_archived_model_completion": 543,
+  "september_archived_role_for_end_user": 80,
+  "september_archived_structural_quality": 508,
+  "september_historical_closed_date_present": 382,
+  "september_historical_solution_present": 455,
+  "services_operating_mode": "V2 MAIN ON 18883; V4 PRIVATE CANARY ON 18913; REPAIRS DISABLED",
+  "sha256_private_synthetic_canary_smoke": "dba71896428bdbb873061308c6e3c4d3e444f3c00e352e30f308b4198232f6e6",
+  "sha256_v4_private_sample": "f5ea018d7c47b3cd9f16ef231758cef23735fbc71a3c46d5aae35f693cc891a0",
+  "source_binding_fingerprint": "aabbd6c4e1eebedcb116b3c490e9fe253dcfc35550cfbf49f7fb27b09b6a9a9c",
+  "source_november_1_to_18_cases": 0,
+  "source_october_2026_cases": 0,
+  "v2_three_turn_cases": 20,
+  "v4_accepted_turns": 64,
+  "v4_escalation_deterministic_sample": 24,
+  "v4_recent_paired_cases": 24,
+  "v4_recent_paired_turns": 72,
+  "v4_sample72_response_latency_seconds": {
+    "max": 180.41,
+    "p50": 36.18,
+    "p95_nearest_rank": 175.01
+  },
+  "v4_september_sample_denominator": 12,
+  "v4_september_sample_three_turn_cases": 9,
+  "v4_synthetic_canary_first_model_quality_accepted": false,
+  "v4_synthetic_canary_live_response_seconds": [
+    112.86,
+    11.2,
+    24.11
+  ],
+  "v4_synthetic_canary_model_gate_sequence": [
+    false,
+    true,
+    true
+  ],
+  "v4_three_turn_cases": 17
+}
