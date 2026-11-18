@@ -83,6 +83,12 @@ _ASK_SECRET=re.compile(
     r"(?:dame|env[ií](?:a|ame)|comparte|proporciona|entrega|escribe|adjunta)"
     r"\s+(?:tu\s+|la\s+|tus\s+)?(?:contrase[nñ]a|clave|token|credenciales)",
     re.I)
+_UNSAFE_BRANCH_ORDER=re.compile(
+    r"\b(?:ejecuta|instala|configura|modifica|elimina|borra|desactiva|habilita|"
+    r"otorga|restablece|desbloquea|cambia\s+(?:el\s+|los\s+)?permisos?|consulta\s+(?:la\s+)?tabla)\b",
+    re.I)
+_SECRET_FREE_TEXT=re.compile(
+    r"(?i)\b(?:mi\s+)?(?:contrase[nñ]a|password|clave|token)\s*(?:es|vale|:|=)\s*[^\s,;]+")
 _TOKENWORDS=re.compile(r"\b[\wáéíóúñ]{5,}\b",re.I)
 
 
@@ -123,6 +129,9 @@ def validate_guidance(obj:object,previous_step:str="")->list[str]:
         if _USER_UNSAFE.search(step):flags.append("USER_ADMIN_OR_SECRET_ACTION")
         if _ASK_SECRET.search(" ".join(str(user.get(k,"")) for k in user)):
             flags.append("USER_REQUESTS_SECRET")
+        if any(_UNSAFE_BRANCH_ORDER.search(str(user.get(k,"")))
+               for k in ("explicacion","observa","si_a","si_b","pregunta")):
+            flags.append("USER_BRANCH_ORDER_UNSAFE")
         if "\n" in step or len(re.findall(r"(?i)\b(?:primero|segundo|tercero|luego|despu[eé]s)\b",step))>1:
             flags.append("MULTIPLE_USER_STEPS")
         if previous_step:
@@ -207,10 +216,13 @@ def generate_guidance(initial:str, service:str, reply:str, history:list[dict], m
             "executed_changes":False,"diagnosis_certified":False}
 
 
+def _scrub(s:str)->str:
+    return _SECRET_FREE_TEXT.sub("[SECRETO]",redact(s))
+
 def _safe_message(s:object,min_chars:int=5,max_chars:int=1400)->str:
     if not isinstance(s,str) or not min_chars<=len(s.strip())<=max_chars:
         raise ValueError("INVALID_GUIDED_MESSAGE")
-    return redact(s)[:max_chars]
+    return _scrub(s)[:max_chars]
 
 
 class GuidedStore:
@@ -235,6 +247,17 @@ class GuidedStore:
             "sid TEXT NOT NULL, turn INTEGER NOT NULL, input_hash TEXT NOT NULL,"
             "reply TEXT NOT NULL, result_json TEXT NOT NULL,"
             "PRIMARY KEY (sid,turn), FOREIGN KEY (sid) REFERENCES guided_sessions(sid))")
+        # Automatic 30-day retention cleanup. No live incident/repair access.
+        now=datetime.now(timezone.utc).isoformat()
+        self.db.execute("BEGIN IMMEDIATE")
+        try:
+            self.db.execute("DELETE FROM guided_turns WHERE sid IN "
+                            "(SELECT sid FROM guided_sessions WHERE expires<=?)",(now,))
+            self.db.execute("DELETE FROM guided_sessions WHERE expires<=?",(now,))
+            self.db.execute("COMMIT")
+        except Exception:
+            self.db.execute("ROLLBACK")
+            raise
 
     def close(self):
         self.db.close()
@@ -250,7 +273,7 @@ class GuidedStore:
     def start(self,ticket:dict,primary,fallback=None)->dict:
         cleaned=validate_ticket(ticket)
         case_ref=cleaned["case_ref"]
-        initial=cleaned["description"]
+        initial=_scrub(cleaned["description"])
         digest=_hash({"initial":initial,"service":cleaned["service"],"scope":cleaned["input_scope"]})
         self.db.execute("BEGIN IMMEDIATE")
         try:

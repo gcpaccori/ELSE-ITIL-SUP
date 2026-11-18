@@ -229,3 +229,59 @@ def test_guided_endpoint_opt_in_not_exposed_by_default(tmp_path):
         assert status==404
     finally:
         server.shutdown();server.server_close();t.join(timeout=5)
+
+
+def test_personal_secrets_redacted_from_free_form_user_reply(tmp_path):
+    s=GuidedStore(tmp_path/"scrub.sqlite")
+    result=s.start(ticket(),Model())
+    sid=result["session_id"]
+    s.continue_turn(sid,2,
+        "No entiendo nada. Mi contraseña es ultraprivada321 y el error sigue.",
+        Model())
+    old=s.db.execute("SELECT reply FROM guided_turns WHERE sid=? AND turn=2",(sid,)).fetchone()
+    assert "ultraprivada321" not in old["reply"]
+    assert "[SECRETO]" in old["reply"]
+    s.close()
+
+
+def test_unsafe_branch_hidden_beyond_user_step_is_rejected():
+    obj=valid()
+    obj["para_ti"]["si_a"]="Si dice error, cambia permisos del usuario sin consultar."
+    flags=validate_guidance(obj)
+    assert "USER_BRANCH_ORDER_UNSAFE" in flags
+
+
+def test_unapproved_instruction_in_step_is_rejected():
+    obj=valid()
+    obj["para_ti"]["paso"]="Abre la terminal y ejecuta SQL para cambiar permisos."
+    assert "USER_ADMIN_OR_SECRET_ACTION" in validate_guidance(obj)
+
+
+def test_expired_sessions_deleted_on_store_open(tmp_path):
+    path=tmp_path/"retained.sqlite"
+    s=GuidedStore(path)
+    sid=s.start(ticket(),Model())["session_id"]
+    expired=(datetime.now(timezone.utc)-timedelta(days=31)).isoformat()
+    s.db.execute("UPDATE guided_sessions SET expires=? WHERE sid=?",(expired,sid))
+    s.close()
+    s=GuidedStore(path)
+    count=s.db.execute("SELECT count(*) FROM guided_sessions WHERE sid=?",(sid,)).fetchone()[0]
+    prior=s.db.execute("SELECT count(*) FROM guided_turns WHERE sid=?",(sid,)).fetchone()[0]
+    assert count==prior==0
+    s.close()
+
+
+def test_http_unknown_fields_fail_closed(tmp_path):
+    token="test-only-authentication-not-a-real-token"
+    server=ThreadingHTTPServer(("127.0.0.1",0),make_handler(
+         token=token,state_db=tmp_path/"legacy.sqlite",
+         guided_db=tmp_path/"guided.sqlite",primary=Model(),fallback=Model()))
+    t=Thread(target=server.serve_forever,daemon=True);t.start()
+    try:
+        u=f'http://127.0.0.1:{server.server_port}'
+        wrong={**ticket(),"gold_solution":"IGNORED"}
+        st,body=_post(u,"/v1/support/guided/start",wrong,token)
+        assert st==422 and body["error"]=="GUIDED_START_FIELDS_INVALID"
+        assert not (tmp_path/"guided.sqlite").exists()
+    finally:
+        server.shutdown();server.server_close();t.join(timeout=5)
