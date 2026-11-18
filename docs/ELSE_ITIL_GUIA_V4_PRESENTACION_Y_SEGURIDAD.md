@@ -51,3 +51,13 @@ No existen barras que correspondan a diagnósticos reales certificados. `etapa` 
 El despliegue controlado utiliza un **SHA exacto** de `main` y genera el drop-in de systemd `40-guided-v4.conf`, sin sobrescribir `30-guided-v2.conf`. Mantiene el puerto loopback y el almacén privado de sesiones previo. Si falla el control de salud, autenticación, cola QA o permisos, elimina el nuevo drop-in y reinicia la V2 previa.
 
 **No** habilitar reparaciones, consultas corporativas ni cambios de cuentas. El objeto del trabajo es explicar mejor y derivar con evidencia cuando no existen datos suficientes.
+
+
+## Decisión posterior a la reevaluación
+
+La última corrida de la V4 mantuvo el escalamiento determinista visible pero
+tuvo menor aceptación de tres turnos que la V2 previa. Se decidió **no sustituir
+el servicio principal**. El piloto se lanza con la unidad privada
+else-itil-novice-v4-canary.service, loopback 127.0.0.1:18913 y almacén
+separado, preservando ELSE-ITIL V2 en 18883. Su activación y reversión se
+controlan con ops/deploy_specialist_v4_private_canary.sh y un SHA exacto.

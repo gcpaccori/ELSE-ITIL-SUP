@@ -82,6 +82,16 @@ La aprobación del contrato mide estructura y seguridad, no diagnóstico causal 
 6. Continuidad segura de sesiones V2 existentes, revalidando los recibos anteriores sin sobrescribirlos.
 7. Control de salud, autenticación y cola QA, con rollback automático a V2 si falla el despliegue.
 
+## Decisión de despliegue
+
+La V4 obtuvo {newfull} de 24 conversaciones con sus tres turnos aceptados,
+frente a {oldfull} de 24 de la V2 corregida. No representa una mejora
+de continuidad y por tanto NO debe sustituir a la V2 en su servicio principal.
+Se habilita solo como canario privado independiente en loopback 18913,
+con base y memoria separadas y sin acceso externo. La V2 permanece activa
+en el puerto privado 18883 y conserva la cola QA.
+El script de despliegue es ops/deploy_specialist_v4_private_canary.sh.
+
 ## Límites
 
 Las personas y las pantallas del escenario son hipotéticas. NO se ha medido comprensión con usuarios reales, no existe tasa certificada de diagnóstico correcto, y no hay reparaciones ejecutadas. El conjunto de 24 casos es no aleatorio y no debe extrapolarse al universo de 2.364 incidentes.
