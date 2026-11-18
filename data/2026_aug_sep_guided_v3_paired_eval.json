@@ -1,0 +1,104 @@
+{
+  "baseline_immutable_sha256": "f74cfe287d61d99919aa7a065831ac7733d0fbcb884a742c46d030212b11225e",
+  "by_month": {
+    "2026-08": {
+      "generated_turns": 36,
+      "length_strata": {
+        "long": 5,
+        "medium": 4,
+        "short": 3
+      },
+      "metrics": {
+        "all_turn_model_accepted_case": 11,
+        "all_turns_with_safe_user_step_case": 12,
+        "baseline_cases_all_turns_accepted": 12,
+        "baseline_first_turn_user_facing_step": 1,
+        "third_turn_has_escalation_with_evidence": 3,
+        "turn1_model_accepted": 12,
+        "turn1_primary_model": 12,
+        "turn1_support_section_separate": 12,
+        "turn1_unconfirmed_causes": 12,
+        "turn1_user_action_with_results": 12,
+        "turn1_valid_format": 12,
+        "turn2_model_accepted": 12,
+        "turn2_primary_model": 10,
+        "turn2_step_changed": 12,
+        "turn2_support_section_separate": 12,
+        "turn2_unconfirmed_causes": 12,
+        "turn2_user_action_with_results": 12,
+        "turn2_valid_format": 12,
+        "turn3_model_accepted": 11,
+        "turn3_primary_model": 7,
+        "turn3_step_changed": 12,
+        "turn3_support_section_separate": 12,
+        "turn3_unconfirmed_causes": 12,
+        "turn3_user_action_with_results": 12,
+        "turn3_valid_format": 12
+      },
+      "paired_cases": 12,
+      "source_cases": 1819
+    },
+    "2026-09": {
+      "generated_turns": 36,
+      "length_strata": {
+        "long": 5,
+        "medium": 4,
+        "short": 3
+      },
+      "metrics": {
+        "all_turn_model_accepted_case": 9,
+        "all_turns_with_safe_user_step_case": 12,
+        "baseline_cases_all_turns_accepted": 9,
+        "baseline_first_turn_user_facing_step": 0,
+        "third_turn_has_escalation_with_evidence": 4,
+        "turn1_model_accepted": 12,
+        "turn1_primary_model": 11,
+        "turn1_support_section_separate": 12,
+        "turn1_unconfirmed_causes": 12,
+        "turn1_user_action_with_results": 12,
+        "turn1_valid_format": 12,
+        "turn2_model_accepted": 11,
+        "turn2_primary_model": 7,
+        "turn2_step_changed": 12,
+        "turn2_support_section_separate": 12,
+        "turn2_unconfirmed_causes": 12,
+        "turn2_user_action_with_results": 12,
+        "turn2_valid_format": 12,
+        "turn3_model_accepted": 10,
+        "turn3_primary_model": 8,
+        "turn3_step_changed": 12,
+        "turn3_support_section_separate": 12,
+        "turn3_unconfirmed_causes": 12,
+        "turn3_user_action_with_results": 12,
+        "turn3_valid_format": 12
+      },
+      "paired_cases": 12,
+      "source_cases": 545
+    }
+  },
+  "calls": 72,
+  "cases": 24,
+  "causal_diagnosis_accuracy_certified": false,
+  "dates": "2026-08 and 2026-09",
+  "elapsed_seconds": 661.3,
+  "no_SQL_or_corporate_access": true,
+  "no_historical_solutions_used": true,
+  "novice_replies": "SYNTHETIC_NOT_REAL_USER_SCREEN",
+  "private_session_db_sha256": "e8e610f839ddf27481278574d1120b291ee3e3c4ce5293cae3302fd17b9b5b10",
+  "private_v2_sha256": "712bf1a0789d23c24cb003bde3d8e3462fae48cf7e980395b2e3893223d4b45f",
+  "real_generator": "Qwen3.5-9B primary with Qwen3.5-4B fallback",
+  "real_user_validation": false,
+  "repairs_or_actions_executed": 0,
+  "schema": "else.itil.qa.paired-novice-guidance-v3.v1",
+  "selection": "EXACT_SAME_24_CASE_SHA_AS_NOV17_BASELINE",
+  "source_case_counts": {
+    "2026-08": 1819,
+    "2026-09": 545
+  },
+  "source_redacted_sha256": {
+    "2026-08": "7200e6ea8f015b97475c482c9d128c0a0e2ed504b6e090421b99e4442566cfc0",
+    "2026-09": "b3030b78700470f4beda18c399e939ef2c8c24537aac8563d131557d9a9c91cb"
+  },
+  "test_history_persistent_in_private_sqlite": true,
+  "turns_per_case": 3
+}

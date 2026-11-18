@@ -303,3 +303,63 @@ def test_invalid_primary_cannot_be_promoted_without_valid_corrective_response():
     assert result["quality"]["prior_rejections"]
     assert not result["executed_changes"]
     assert not result["diagnosis_certified"]
+
+
+def test_unrelated_sessions_can_generate_concurrently_with_striped_locks(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    from hashlib import sha256
+    from threading import Barrier
+    private=tmp_path/'concurrent-guides.sqlite'
+    GuidedStore(private).close()
+    barrier=Barrier(2)
+    class ConcurrentModel:
+        def complete(self,messages):
+            barrier.wait(timeout=8)
+            return json.dumps(valid(),ensure_ascii=False)
+    token="guidance-concurrency-test-secret-long-enough"
+    server=ThreadingHTTPServer(('127.0.0.1',0),make_handler(
+        token=token,state_db=tmp_path/'legacy.sqlite',
+        guided_db=private,primary=ConcurrentModel(),fallback=None))
+    thread=Thread(target=server.serve_forever,daemon=True);thread.start()
+    url=f'http://127.0.0.1:{server.server_port}'
+    refs=[]
+    for k in range(50):
+        r=f'GUIDE-CONC-{k:03d}'
+        stripe=int.from_bytes(sha256(r.encode()).digest()[:2],'big')%64
+        if not refs or stripe!=refs[0][1]:
+            refs.append((r,stripe))
+            if len(refs)==2:break
+    assert len(refs)==2
+    try:
+        def worker(ref):
+            return _post(url,'/v1/support/guided/start',{
+               **ticket(),"case_ref":ref},token)
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            outputs=list(pool.map(worker,[x[0] for x in refs]))
+        assert all(code==200 and data['status']=="GUIDED_DIAGNOSTIC_CONDITIONAL"
+                   for code,data in outputs)
+        assert outputs[0][1]['session_id']!=outputs[1][1]['session_id']
+    finally:
+        server.shutdown();server.server_close();thread.join(timeout=5)
+
+
+def test_user_handoff_is_explicit_not_a_model_claim(tmp_path):
+    s=GuidedStore(tmp_path/'handoff.sqlite')
+    model=Model([
+        valid("Mira la pantalla y registra el mensaje visible sin datos privados."),
+        valid("Revisa en qué sección aparece el problema e indica su nombre."),
+        valid("Observa si ocurre al abrir la aplicación o durante una tarea específica.")
+    ])
+    one=s.start(ticket(),model)
+    assert one["escalamiento_para_usuario"]["mostrar_ahora"] is False
+    two=s.continue_turn(one["session_id"],2,
+       "No entiendo cómo hacerlo desde la pantalla.",model)
+    three=s.continue_turn(one["session_id"],3,
+       "Sigue igual y no puedo cambiar permisos.",model)
+    handoff=three["escalamiento_para_usuario"]
+    assert handoff["mostrar_ahora"] is True
+    assert "Mesa de ayuda" in handoff["a_quien"]
+    assert handoff["origen"]=="GUARDRAIL_DETERMINISTA_NO_CONCLUSION_DEL_MODELO"
+    assert "contraseñas" in handoff["no_compartir"]
+    assert not three["executed_changes"]
+    s.close()

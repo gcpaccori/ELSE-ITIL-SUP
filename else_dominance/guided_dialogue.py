@@ -237,6 +237,22 @@ def generate_guidance(initial:str, service:str, reply:str, history:list[dict], m
 def _scrub(s:str)->str:
     return _SECRET_FREE_TEXT.sub("[SECRETO]",redact(s))
 
+def _handoff_for_user(turn:int,status:str)->dict:
+    """Deterministic, non-model guidance to safely reach authorized support."""
+    return {
+      "mostrar_ahora":turn>=3 or status=="NEEDS_HUMAN_TRIAGE",
+      "cuando":"Si el problema persiste, no entiendes la prueba o se necesitan permisos.",
+      "a_quien":"Mesa de ayuda o equipo de soporte autorizado de tu organización.",
+      "que_anotar":[
+        "Qué pantalla o módulo presenta el problema.",
+        "Hora aproximada y mensaje visible, omitiendo información personal.",
+        "Qué comprobación segura intentaste y qué observaste."
+      ],
+      "no_compartir":"No envíes contraseñas, tokens, documentos de identidad ni datos privados.",
+      "origen":"GUARDRAIL_DETERMINISTA_NO_CONCLUSION_DEL_MODELO"
+    }
+
+
 def _safe_message(s:object,min_chars:int=5,max_chars:int=1400)->str:
     if not isinstance(s,str) or not min_chars<=len(s.strip())<=max_chars:
         raise ValueError("INVALID_GUIDED_MESSAGE")
@@ -313,7 +329,8 @@ class GuidedStore:
         response=generate_guidance(initial,cleaned["service"],initial,[],primary,fallback)
         now=datetime.now(timezone.utc)
         base={**response,"session_id":sid,"turn":1,"next_turn":2,"replayed":False,
-              "schema":SCHEMA,"input_scope":cleaned["input_scope"]}
+              "schema":SCHEMA,"input_scope":cleaned["input_scope"],
+              "escalamiento_para_usuario":_handoff_for_user(1,response["status"])}
         self.db.execute("BEGIN IMMEDIATE")
         try:
             self.db.execute("INSERT INTO guided_sessions VALUES(?,?,?,?,?,?,?,?)",
@@ -352,7 +369,9 @@ class GuidedStore:
         response=generate_guidance(head["initial"],head["service"],clean,history,primary,fallback)
         output={**response,"session_id":sid,"turn":expected_turn,
                 "next_turn":expected_turn+1 if expected_turn<MAX_TURNS else None,
-                "replayed":False,"schema":SCHEMA,"input_scope":head["scope"]}
+                "replayed":False,"schema":SCHEMA,"input_scope":head["scope"],
+                "escalamiento_para_usuario":_handoff_for_user(
+                    expected_turn,response["status"])}
         self.db.execute("BEGIN IMMEDIATE")
         try:
             current=self.db.execute("SELECT last_turn FROM guided_sessions WHERE sid=?",

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from hashlib import sha256
 import hmac
 import json
 import secrets
@@ -27,6 +28,9 @@ def make_handler(*, token: str, state_db: Path, primary, fallback,
                  qa_cohort: str="2026-09",
                  guided_db: Path | None = None):
     lock=Lock()
+    # Bounded striped locks: one session is sequential, unrelated cases are
+    # concurrent. The legacy /v1/support locking behavior remains unchanged.
+    guided_locks=tuple(Lock() for _ in range(64))
     if (qa_queue_db is None) != (qa_allowlist is None):
         raise ValueError("QA_DISPATCH_CONFIGURATION_INCOMPLETE")
     if qa_cohort not in COHORTS:
@@ -119,7 +123,12 @@ def make_handler(*, token: str, state_db: Path, primary, fallback,
                         raise ValueError('GUIDED_START_FIELDS_INVALID')
                     if not initial and set(request)!={'session_id','expected_turn','reply'}:
                         raise ValueError('GUIDED_CONTINUE_FIELDS_INVALID')
-                    with lock:
+                    lock_key=(request['case_ref'] if initial else request['session_id'])
+                    if not isinstance(lock_key,str) or len(lock_key)>80:
+                        raise ValueError('GUIDED_LOCK_KEY_INVALID')
+                    stripe=int.from_bytes(sha256(lock_key.encode()).digest()[:2],
+                                          'big')%len(guided_locks)
+                    with guided_locks[stripe]:
                         db=GuidedStore(guided_db)
                         try:
                             if initial:
