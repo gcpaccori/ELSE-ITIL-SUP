@@ -13,9 +13,9 @@ from qa.novice_dialogue.real_novice_simulation import source, select
 
 ROOT=Path("/home/u23u/else_itil_guided_v4_20261118")
 PRIVATE=ROOT/"private"
-MODEL=Path("/home/u23u/else_itil_guided_v2_20261118/private/guided_v3_24cases_72turns.private.jsonl")
-OUTPUT=PRIVATE/"novice_human_review_packet.private.jsonl"
-META=PRIVATE/"novice_human_review_metadata.private.json"
+MODEL=Path("/home/u23u/else_itil_guided_v4_20261118/private/guided_v4_final_24cases_72turns.private.jsonl")
+OUTPUT=PRIVATE/"novice_human_review_packet_v4.private.jsonl"
+META=PRIVATE/"novice_human_review_metadata_v4.private.json"
 FEEDBACK=[
     "La primera respuesta es al problema original.",
     "No entiendo ese paso; necesito que lo expliques sin tecnicismos.",
