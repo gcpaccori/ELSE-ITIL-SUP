@@ -1,0 +1,42 @@
+{
+  "actual_qwen_requests": 2,
+  "business_reads_or_writes": 0,
+  "causal_diagnoses_certified": 0,
+  "date": "2026-11-18",
+  "fast_rule_turns_without_model": 1,
+  "human_reviews_certified": 0,
+  "legacy_v2_v4_not_modified": true,
+  "main_safety_fast_handoff_latency_under_5s": true,
+  "measured_wall_seconds_per_turn": [
+    10.45,
+    10.17,
+    0.0
+  ],
+  "model_contract_accepted_per_turn": [
+    true,
+    true,
+    false
+  ],
+  "model_selected_per_turn": [
+    "primary",
+    "primary",
+    null
+  ],
+  "no_raw_text_or_identifying_customer_data_published": true,
+  "not_a_slo_benchmark": true,
+  "presentation_stage_per_turn": [
+    "COMPROBAR_UNA_COSA",
+    "ACLARAR_EN_LENGUAJE_SENCILLO",
+    "ESCALAR_CON_APOYO_HUMANO"
+  ],
+  "root_cause_truth_not_measured": true,
+  "runtime_readiness": "NO_GO",
+  "schema": "else.itil.qa.v5-live-synthetic-real-qwen.v1",
+  "status_per_turn": [
+    "GUIDED_DIAGNOSTIC_CONDITIONAL",
+    "GUIDED_DIAGNOSTIC_CONDITIONAL",
+    "NEEDS_HUMAN_TRIAGE"
+  ],
+  "synthetic_corporate_incidents": 0,
+  "turns": 3
+}
