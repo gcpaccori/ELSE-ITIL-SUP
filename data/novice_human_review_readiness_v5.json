@@ -1,0 +1,20 @@
+{
+  "actual_independent_corporate_evidence_validated": false,
+  "cases_in_private_packet": 24,
+  "cases_with_novice_observation": 0,
+  "cases_with_two_technical_reviews": 0,
+  "causal_diagnosis_certified": false,
+  "human_identity_externally_verified": false,
+  "min_distinct_real_novices": 6,
+  "min_technical_per_case": 2,
+  "never_convert_form_scores_to_causal_truth": true,
+  "private_case_text_published": false,
+  "rating_records_provided": 0,
+  "review_coverage_complete": false,
+  "reviewer_aliases_submitted": 0,
+  "schema": "else.itil.qa.human-review-gate.v1",
+  "source_packet_sha256": "a8326149ba4d1d79a53cb404f9da6802f76f71cbeec87c2568cb20d6204d4f98",
+  "status": "PENDING_HUMAN_REVIEW",
+  "turns_in_private_packet": 72,
+  "unique_observed_novice_aliases": 0
+}

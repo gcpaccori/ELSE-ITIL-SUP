@@ -1,0 +1,19 @@
+{
+  "elapsed_seconds_mechanical_only": 2.281,
+  "no_business_reads_or_writes": true,
+  "no_llm_requests": true,
+  "no_model_quality_or_causal_accuracy_measured": true,
+  "no_real_corporate_incidents": true,
+  "real_human_participants": 0,
+  "results": {
+    "exact_start_replays": 1000,
+    "fast_no_model_turns": 3000,
+    "sessions": 1000,
+    "subjects": 10
+  },
+  "root_causes_certified": 0,
+  "same_visible_refs_across_principals": true,
+  "schema": "else.itil.qa.v5-1000-principal-isolation.v1",
+  "source": "SYNTHETIC_ONLY",
+  "sqlite_private_0600": true
+}

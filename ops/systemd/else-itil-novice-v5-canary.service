@@ -1,0 +1,13 @@
+[Unit]
+Description=ELSE-ITIL V5 governed novice guidance canary, independent of V2 and V4
+After=network.target
+[Service]
+Type=simple
+WorkingDirectory=/home/u23u/else_itil_maturity_v5_20261118/release_main
+ExecStart=/bin/bash /home/u23u/else_itil_maturity_v5_20261118/release_main/ops/run_specialist_v5_governed_canary.sh
+Restart=on-failure
+RestartSec=15
+UMask=0077
+NoNewPrivileges=true
+[Install]
+WantedBy=default.target
