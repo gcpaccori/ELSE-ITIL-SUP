@@ -141,6 +141,10 @@ def validate_guidance(obj:object,previous_step:str="")->list[str]:
     if any(_UNSAFE_OUTPUT_SECRET.search(str(x)) or
            _BEARER_SECRET.search(str(x)) for x in evidence_texts):
         flags.append("MODEL_EXPOSES_SECRET")
+    # Every model-generated string must be safe for a human-facing transcript.
+    # No response is trusted simply because input was redacted previously.
+    if any(redact(str(x)) != str(x) for x in evidence_texts):
+        flags.append("MODEL_ECHOES_SENSITIVE_IDENTIFIER")
     hypotheses=obj.get("hipotesis")
     if not isinstance(hypotheses,list) or len(hypotheses)!=2 or not all(_text(s,12,180) for s in hypotheses):
         flags.append("HYPOTHESES_INVALID")
@@ -402,10 +406,10 @@ def _presentation_for_legacy_replay(turn:int,reply:str,output:dict)->dict:
     now be rejected, hide it behind a safe human-triage fallback rather than
     displaying unverified causal certainty.
     """
-    if "presentacion_para_usuario" in output:
-        return output
     guide=output.get("guide")
     flags=validate_guidance(guide)
+    if "presentacion_para_usuario" in output and not flags:
+        return output
     if flags:
         safe={
           **output,
@@ -422,6 +426,42 @@ def _presentation_for_legacy_replay(turn:int,reply:str,output:dict)->dict:
             "legacy_replay_projection":True}
 
 
+def _safe_rapid_handoff()->dict:
+    """Deterministic safety response. Never mark a model as accepted."""
+    return {
+      "status":"NEEDS_HUMAN_TRIAGE","model_selected":None,
+      "guide":_safe_fallback(),
+      "quality":{"accepted":False,"flags":["SAFE_HANDOFF_WITHOUT_MODEL_CALL"]},
+      "real_corporate_sources_queried":False,
+      "executed_changes":False,"diagnosis_certified":False,
+      "inference_skipped_for_safe_escalation":True,
+    }
+
+
+def _safe_user_reported_improvement()->dict:
+    """A user's improvement report is an observation, NOT a verified fix."""
+    return {
+      "status":"USER_REPORTED_IMPROVEMENT_UNVERIFIED",
+      "model_selected":None,"guide":_safe_fallback(),
+      "quality":{"accepted":False,
+                 "flags":["USER_REPORT_UNVERIFIED_NO_MODEL_CALL"]},
+      "real_corporate_sources_queried":False,
+      "executed_changes":False,"diagnosis_certified":False,
+      "inference_skipped_for_safe_escalation":True,
+      "user_improvement_report_only":True,
+    }
+
+
+def _validate_subject(subject_id:object,required:bool)->str:
+    if subject_id is None:
+        if required:raise ValueError("GUIDED_PRINCIPAL_REQUIRED")
+        return ""
+    if not isinstance(subject_id,str) or not re.fullmatch(
+            r"[a-z][a-z0-9_.-]{2,63}",subject_id):
+        raise ValueError("GUIDED_PRINCIPAL_INVALID")
+    return subject_id
+
+
 def _safe_message(s:object,min_chars:int=5,max_chars:int=1400)->str:
     if not isinstance(s,str) or not min_chars<=len(s.strip())<=max_chars:
         raise ValueError("INVALID_GUIDED_MESSAGE")
@@ -431,7 +471,10 @@ def _safe_message(s:object,min_chars:int=5,max_chars:int=1400)->str:
 class GuidedStore:
     """Session/turn persistence with strict replay and stale-state protection."""
 
-    def __init__(self,path:Path):
+    def __init__(self,path:Path,*,require_principal:bool=False,
+                 fast_handoff:bool=False):
+        self.require_principal=require_principal
+        self.fast_handoff=fast_handoff
         self.path=Path(path)
         self.path.parent.mkdir(mode=0o700,parents=True,exist_ok=True)
         if not self.path.exists():
@@ -442,10 +485,27 @@ class GuidedStore:
         self.db=sqlite3.connect(str(self.path),timeout=30,isolation_level=None)
         self.db.row_factory=sqlite3.Row
         self.db.execute("PRAGMA busy_timeout=30000")
+        self.db.execute("PRAGMA foreign_keys=ON")
+        self.db.execute("PRAGMA secure_delete=ON")
         self.db.execute("CREATE TABLE IF NOT EXISTS guided_sessions ("
             "sid TEXT PRIMARY KEY, case_ref TEXT NOT NULL UNIQUE, scope TEXT NOT NULL,"
             "service TEXT NOT NULL, initial TEXT NOT NULL, created TEXT NOT NULL,"
             "last_turn INTEGER NOT NULL, expires TEXT NOT NULL)")
+        # Serialize ALTER across independent workers/processes; do not rely
+        # on per-thread HTTP locks for first-start schema migration.
+        self.db.execute("BEGIN IMMEDIATE")
+        try:
+            columns={x["name"] for x in self.db.execute(
+                "PRAGMA table_info(guided_sessions)")}
+            if "subject_id" not in columns:
+                # Additive migration; old sessions remain unowned and cannot
+                # be claimed by a V5 principal.
+                self.db.execute("ALTER TABLE guided_sessions ADD COLUMN "
+                                "subject_id TEXT NOT NULL DEFAULT ''")
+            self.db.execute("COMMIT")
+        except Exception:
+            self.db.execute("ROLLBACK")
+            raise
         self.db.execute("CREATE TABLE IF NOT EXISTS guided_turns ("
             "sid TEXT NOT NULL, turn INTEGER NOT NULL, input_hash TEXT NOT NULL,"
             "reply TEXT NOT NULL, result_json TEXT NOT NULL,"
@@ -470,18 +530,34 @@ class GuidedStore:
         for row in self.db.execute(
                 "SELECT turn,reply,result_json FROM guided_turns WHERE sid=? ORDER BY turn",(sid,)):
             result=json.loads(row["result_json"])
-            out.append({"turn":row["turn"],"reply":row["reply"],"guide":result["guide"]})
+            guide=result.get("guide")
+            if validate_guidance(guide):
+                # Old model outputs with current-gate failures are not trusted
+                # as prior instructions in a new model request.
+                guide=_safe_fallback()
+            out.append({"turn":row["turn"],"reply":row["reply"],
+                        "guide":guide})
         return out
 
-    def start(self,ticket:dict,primary,fallback=None)->dict:
+    def start(self,ticket:dict,primary,fallback=None,
+              *,subject_id:str|None=None)->dict:
+        principal=_validate_subject(subject_id,self.require_principal)
         cleaned=validate_ticket(ticket)
-        case_ref=cleaned["case_ref"]
+        # In identity-enforced mode, a caller-controlled case_ref is scoped to
+        # its principal. Two users may use the same visible reference without
+        # discovering or overwriting one another's private sessions.
+        case_ref=(sha256((principal+"\x00"+cleaned["case_ref"]).encode()).hexdigest()
+                  if principal else cleaned["case_ref"])
         initial=_scrub(cleaned["description"])
         digest=_hash({"initial":initial,"service":cleaned["service"],"scope":cleaned["input_scope"]})
         self.db.execute("BEGIN IMMEDIATE")
         try:
-            old=self.db.execute("SELECT sid FROM guided_sessions WHERE case_ref=?",(case_ref,)).fetchone()
+            old=self.db.execute(
+                "SELECT sid,subject_id FROM guided_sessions WHERE case_ref=?",
+                (case_ref,)).fetchone()
             if old is not None:
+                if old["subject_id"]!=principal:
+                    raise ValueError("GUIDED_CASE_REF_UNAVAILABLE")
                 prior=self.db.execute("SELECT input_hash,result_json FROM guided_turns WHERE sid=? AND turn=1",
                                       (old["sid"],)).fetchone()
                 if prior and prior["input_hash"]==digest:
@@ -496,16 +572,23 @@ class GuidedStore:
             self.db.execute("ROLLBACK")
             raise
         sid=secrets.token_hex(24)
-        response=generate_guidance(initial,cleaned["service"],initial,[],primary,fallback)
+        if self.fast_handoff and _feedback_kind(initial)=="SIN_PERMISOS":
+            response=_safe_rapid_handoff()
+        else:
+            response=generate_guidance(initial,cleaned["service"],initial,[],primary,fallback)
         now=datetime.now(timezone.utc)
         base={**_decorate(1,initial,response),
               "session_id":sid,"turn":1,"next_turn":2,"replayed":False,
               "schema":SCHEMA,"input_scope":cleaned["input_scope"]}
         self.db.execute("BEGIN IMMEDIATE")
         try:
-            self.db.execute("INSERT INTO guided_sessions VALUES(?,?,?,?,?,?,?,?)",
-                (sid,case_ref,cleaned["input_scope"],cleaned["service"],initial,now.isoformat(),
-                 1,(now+timedelta(days=TTL_DAYS)).isoformat()))
+            self.db.execute(
+                "INSERT INTO guided_sessions "
+                "(sid,case_ref,scope,service,initial,created,last_turn,expires,subject_id) "
+                "VALUES (?,?,?,?,?,?,?,?,?)",
+                (sid,case_ref,cleaned["input_scope"],cleaned["service"],
+                 initial,now.isoformat(),1,
+                 (now+timedelta(days=TTL_DAYS)).isoformat(),principal))
             self.db.execute("INSERT INTO guided_turns VALUES(?,?,?,?,?)",
                 (sid,1,digest,initial,json.dumps(base,ensure_ascii=False)))
             self.db.execute("COMMIT")
@@ -514,7 +597,9 @@ class GuidedStore:
             self.db.execute("ROLLBACK")
             raise
 
-    def continue_turn(self,sid:str,expected_turn:int,reply:object,primary,fallback=None)->dict:
+    def continue_turn(self,sid:str,expected_turn:int,reply:object,primary,fallback=None,
+                      *,subject_id:str|None=None)->dict:
+        principal=_validate_subject(subject_id,self.require_principal)
         if not isinstance(sid,str) or not SESSION_PATTERN.fullmatch(sid):
             raise ValueError("GUIDED_SESSION_ID_INVALID")
         if type(expected_turn) is not int or not 2<=expected_turn<=MAX_TURNS:
@@ -522,7 +607,9 @@ class GuidedStore:
         clean=_safe_message(reply)
         digest=_hash({"sid":sid,"turn":expected_turn,"reply":clean})
         head=self.db.execute("SELECT * FROM guided_sessions WHERE sid=?",(sid,)).fetchone()
-        if head is None:raise ValueError("GUIDED_SESSION_NOT_FOUND")
+        if head is None or head["subject_id"]!=principal:
+            # Never reveal whether an unrelated principal owns this session.
+            raise ValueError("GUIDED_SESSION_NOT_FOUND")
         if datetime.fromisoformat(head["expires"])<=datetime.now(timezone.utc):
             raise ValueError("GUIDED_SESSION_EXPIRED")
         if expected_turn<=head["last_turn"]:
@@ -537,7 +624,17 @@ class GuidedStore:
         if expected_turn!=head["last_turn"]+1:
             raise ValueError("GUIDED_OUT_OF_ORDER_TURN")
         history=self._history(sid)
-        response=generate_guidance(head["initial"],head["service"],clean,history,primary,fallback)
+        feedback_kind=_feedback_kind(clean)
+        immediate=(self.fast_handoff and (
+            feedback_kind=="SIN_PERMISOS" or
+            (expected_turn>=3 and feedback_kind=="PERSISTE")))
+        if self.fast_handoff and feedback_kind=="MEJORIA_REPORTADA":
+            response=_safe_user_reported_improvement()
+        elif immediate:
+            response=_safe_rapid_handoff()
+        else:
+            response=generate_guidance(head["initial"],head["service"],
+                                       clean,history,primary,fallback)
         output={**_decorate(expected_turn,clean,response),
                 "session_id":sid,"turn":expected_turn,
                 "next_turn":expected_turn+1 if expected_turn<MAX_TURNS else None,
