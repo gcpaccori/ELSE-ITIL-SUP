@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import datetime, timezone, timedelta
 from hashlib import sha256
 from pathlib import Path
+import unicodedata
 import json
 import os
 import re
@@ -88,7 +89,20 @@ _UNSAFE_BRANCH_ORDER=re.compile(
     r"otorga|restablece|desbloquea|cambia\s+(?:el\s+|los\s+)?permisos?|consulta\s+(?:la\s+)?tabla)\b",
     re.I)
 _SECRET_FREE_TEXT=re.compile(
-    r"(?i)\b(?:mi\s+)?(?:contrase[nñ]a|password|clave|token)\s*(?:es|vale|:|=)\s*[^\s,;]+")
+    r"(?i)\b(?:mi\s+)?(?:contrase[nñ]a|password|clave(?:\s+de\s+acceso)?|"
+    r"token(?:\s+de\s+acceso)?|c[oó]digo\s+de\s+seguridad|pin)"
+    r"\s*(?:es|vale|:|=)\s*[^\s,;]+")
+_BEARER_SECRET=re.compile(
+    r"(?i)\bBearer\s+[A-Za-z0-9_\-./~+=]{8,}")
+_UNVERIFIED_CERTAINTY=re.compile(
+    r"(?i)\b(?:se\s+ha\s+confirmado|hemos\s+confirmado|ya\s+confirmamos|"
+    r"est[aá]\s+confirmado|comprob[eé]\s+que|verifiqu[eé]\s+que|"
+    r"la\s+causa\s+(?:ra[ií]z\s+)?es|"
+    r"ya\s+se\s+resolvi[oó]|est[aá]\s+resuelto|"
+    r"qued[oó]\s+solucionado|hemos\s+solucionado)\b")
+_UNSAFE_OUTPUT_SECRET=re.compile(
+    r"(?i)\b(?:contrase[nñ]a|password|clave|token|api[_ -]?key)"
+    r"\s*(?::|=|es|vale)\s*[^\s,;]+")
 _TOKENWORDS=re.compile(r"\b[\wáéíóúñ]{5,}\b",re.I)
 
 
@@ -111,6 +125,16 @@ def validate_guidance(obj:object,previous_step:str="")->list[str]:
     if obj.get("causa_confirmada") is not False or obj.get("ejecutado") is not False:
         flags.append("FALSE_CAUSAL_OR_EXECUTION_CLAIM")
     if not _text(obj.get("que_entendi"),20,410):flags.append("SUMMARY_INVALID")
+    evidence_texts=[obj.get("que_entendi","")]
+    if isinstance(obj.get("para_ti"),dict):
+        evidence_texts.extend(obj["para_ti"].values())
+    if isinstance(obj.get("para_soporte"),dict):
+        evidence_texts.extend(obj["para_soporte"].values())
+    if any(_UNVERIFIED_CERTAINTY.search(str(x)) for x in evidence_texts):
+        flags.append("UNVERIFIED_CAUSAL_OR_CLOSURE_CLAIM_IN_TEXT")
+    if any(_UNSAFE_OUTPUT_SECRET.search(str(x)) or
+           _BEARER_SECRET.search(str(x)) for x in evidence_texts):
+        flags.append("MODEL_EXPOSES_SECRET")
     hypotheses=obj.get("hipotesis")
     if not isinstance(hypotheses,list) or len(hypotheses)!=2 or not all(_text(s,12,180) for s in hypotheses):
         flags.append("HYPOTHESES_INVALID")
@@ -235,12 +259,19 @@ def generate_guidance(initial:str, service:str, reply:str, history:list[dict], m
 
 
 def _scrub(s:str)->str:
-    return _SECRET_FREE_TEXT.sub("[SECRETO]",redact(s))
+    value=redact(s)
+    value=_BEARER_SECRET.sub("Bearer [SECRETO]",value)
+    return _SECRET_FREE_TEXT.sub("[SECRETO]",value)
 
-def _handoff_for_user(turn:int,status:str)->dict:
-    """Deterministic, non-model guidance to safely reach authorized support."""
+def _handoff_for_user(turn:int,status:str,reply:str="")->dict:
+    """Deterministic escalation independent of model acceptance or diagnosis."""
+    kind=_feedback_kind(reply)
+    success_reported=(kind=="MEJORIA_REPORTADA"
+                      and status!="NEEDS_HUMAN_TRIAGE")
+    show=(status=="NEEDS_HUMAN_TRIAGE" or kind=="SIN_PERMISOS"
+          or (turn>=3 and not success_reported))
     return {
-      "mostrar_ahora":turn>=3 or status=="NEEDS_HUMAN_TRIAGE",
+      "mostrar_ahora":show,
       "cuando":"Si el problema persiste, no entiendes la prueba o se necesitan permisos.",
       "a_quien":"Mesa de ayuda o equipo de soporte autorizado de tu organización.",
       "que_anotar":[
@@ -251,6 +282,138 @@ def _handoff_for_user(turn:int,status:str)->dict:
       "no_compartir":"No envíes contraseñas, tokens, documentos de identidad ni datos privados.",
       "origen":"GUARDRAIL_DETERMINISTA_NO_CONCLUSION_DEL_MODELO"
     }
+
+
+
+def _normalized_reply(reply:str)->str:
+    raw=unicodedata.normalize("NFKD",str(reply).lower())
+    return "".join(c for c in raw if not unicodedata.combining(c))
+
+
+def _feedback_kind(reply:str)->str:
+    """Conservative literal feedback interpretation, NOT evidence validation."""
+    r=_normalized_reply(reply)
+    # A report of success is not proof; do not convert it to a closed ticket.
+    if any(x in r for x in ("no tengo permisos","sin permisos",
+                           "no tengo privilegios","me faltan permisos",
+                           "no tengo autorizacion","necesito permisos")):
+        return "SIN_PERMISOS"
+    if any(x in r for x in ("sigue fallando","sigue igual","no funciona",
+                           "no se arreglo","no se soluciono","persiste",
+                           "no puedo continuar")):
+        return "PERSISTE"
+    if any(x in r for x in ("ya funciona","ahora funciona","ya puedo entrar",
+                           "ya puedo acceder","se soluciono","se arreglo",
+                           "ya esta funcionando")):
+        return "MEJORIA_REPORTADA"
+    if any(x in r for x in ("no entiendo","no comprendo","no se como",
+                           "me perdi","no lo se")):
+        return "NO_ENTIENDE"
+    return "SIN_RESULTADO_CLASIFICABLE"
+
+
+def _feedback_stage(turn:int,reply:str,status:str)->str:
+    if status=="NEEDS_HUMAN_TRIAGE":
+        return "ESCALAR_CON_APOYO_HUMANO"
+    kind=_feedback_kind(reply)
+    if kind=="SIN_PERMISOS":
+        return ("RECOPILAR_EVIDENCIA_Y_ESCALAR" if turn>=3
+                else "ESCALAR_SIN_PRIVILEGIOS")
+    if kind=="PERSISTE" and turn>=3:
+        return "RECOPILAR_EVIDENCIA_Y_ESCALAR"
+    if kind=="MEJORIA_REPORTADA":
+        return "USUARIO_REPORTA_MEJORIA_NO_VERIFICADA"
+    if turn>=3:
+        return "RECOPILAR_EVIDENCIA_Y_ESCALAR"
+    if turn>1 and kind=="NO_ENTIENDE":
+        return "ACLARAR_EN_LENGUAJE_SENCILLO"
+    return "COMPROBAR_UNA_COSA"
+
+
+def _presentation(turn:int,reply:str,result:dict)->dict:
+    """Safe, nontechnical presentation; no causal or execution verification."""
+    stage=_feedback_stage(turn,reply,result["status"])
+    guide=result["guide"]
+    u=guide["para_ti"]
+    handoff=_handoff_for_user(turn,result["status"],reply)
+    accepted=bool(result.get("quality",{}).get("accepted"))
+    if stage=="USUARIO_REPORTA_MEJORIA_NO_VERIFICADA":
+        # Do not direct further speculative troubleshooting on a success report.
+        action=("Comprueba desde la pantalla que la misma operación de antes "
+                "puede completarse, sin cambiar opciones ni datos.")
+        question=("¿Puedes realizar ahora la misma operación sin que aparezca "
+                  "el problema, o volvió a fallar?")
+        lines=[
+           "Me indicas que ahora funciona. Es una observación tuya, no una reparación verificada.",
+           "Comprobación final segura: "+action,
+           "Si vuelve el problema, anota el aviso y la hora, sin datos privados.",
+           question,
+        ]
+    else:
+        action=u["paso"]
+        question=u["pregunta"]
+        lines=[
+            "Esto es una orientación, no un diagnóstico confirmado.",
+            "Lo que entendí: "+str(guide["que_entendi"]),
+            "Una sola comprobación segura: "+str(u["paso"]),
+            "Qué observar: "+str(u["observa"]),
+            "Si ocurre la primera opción: "+str(u["si_a"]),
+            "Si ocurre la segunda opción: "+str(u["si_b"]),
+            "Mi pregunta: "+str(u["pregunta"])
+        ]
+    if handoff["mostrar_ahora"]:
+        lines.extend([
+          "Si no puedes avanzar, contacta a la mesa de ayuda.",
+          "Prepara: "+ "; ".join(handoff["que_anotar"]),
+          handoff["no_compartir"]
+        ])
+    return {
+        "etapa":stage,
+        "paso_para_principiante":action,
+        "pregunta_para_continuar":question,
+        "mostrar_escalamiento":handoff["mostrar_ahora"],
+        "escalamiento":handoff,
+        "respuesta_sencilla":"\n".join(lines),
+        "evaluacion_automatica_aceptada":accepted,
+        "diagnostico_confirmado":False,
+        "accion_ejecutada":False,
+        "no_equivale_a_prueba_humana":True,
+    }
+
+
+def _decorate(turn:int,reply:str,response:dict)->dict:
+    return {**response,
+        "escalamiento_para_usuario":_handoff_for_user(
+            turn,response["status"],reply),
+        "presentacion_para_usuario":_presentation(turn,reply,response)}
+
+
+
+def _presentation_for_legacy_replay(turn:int,reply:str,output:dict)->dict:
+    """Add V4 fields to older persisted receipts without changing DB receipts.
+
+    Re-check older generated guides against the new gate: if a guide would
+    now be rejected, hide it behind a safe human-triage fallback rather than
+    displaying unverified causal certainty.
+    """
+    if "presentacion_para_usuario" in output:
+        return output
+    guide=output.get("guide")
+    flags=validate_guidance(guide)
+    if flags:
+        safe={
+          **output,
+          "status":"NEEDS_HUMAN_TRIAGE",
+          "model_selected":None,
+          "guide":_safe_fallback(),
+          "quality":{"accepted":False,
+                     "flags":["LEGACY_GUIDE_REJECTED_BY_CURRENT_GATE"]},
+          "legacy_replay_revalidation_flags":flags,
+        }
+        return {**_decorate(turn,reply,safe),
+                "legacy_replay_projection":True}
+    return {**_decorate(turn,reply,output),
+            "legacy_replay_projection":True}
 
 
 def _safe_message(s:object,min_chars:int=5,max_chars:int=1400)->str:
@@ -317,6 +480,7 @@ class GuidedStore:
                                       (old["sid"],)).fetchone()
                 if prior and prior["input_hash"]==digest:
                     output=json.loads(prior["result_json"])
+                    output=_presentation_for_legacy_replay(1,initial,output)
                     output.update({"session_id":old["sid"],"turn":1,"next_turn":2,"replayed":True})
                     self.db.execute("COMMIT")
                     return output
@@ -328,9 +492,9 @@ class GuidedStore:
         sid=secrets.token_hex(24)
         response=generate_guidance(initial,cleaned["service"],initial,[],primary,fallback)
         now=datetime.now(timezone.utc)
-        base={**response,"session_id":sid,"turn":1,"next_turn":2,"replayed":False,
-              "schema":SCHEMA,"input_scope":cleaned["input_scope"],
-              "escalamiento_para_usuario":_handoff_for_user(1,response["status"])}
+        base={**_decorate(1,initial,response),
+              "session_id":sid,"turn":1,"next_turn":2,"replayed":False,
+              "schema":SCHEMA,"input_scope":cleaned["input_scope"]}
         self.db.execute("BEGIN IMMEDIATE")
         try:
             self.db.execute("INSERT INTO guided_sessions VALUES(?,?,?,?,?,?,?,?)",
@@ -360,6 +524,7 @@ class GuidedStore:
                               (sid,expected_turn)).fetchone()
             if old and old["input_hash"]==digest:
                 output=json.loads(old["result_json"])
+                output=_presentation_for_legacy_replay(expected_turn,clean,output)
                 output["replayed"]=True
                 return output
             raise ValueError("GUIDED_STALE_OR_CHANGED_TURN")
@@ -367,11 +532,10 @@ class GuidedStore:
             raise ValueError("GUIDED_OUT_OF_ORDER_TURN")
         history=self._history(sid)
         response=generate_guidance(head["initial"],head["service"],clean,history,primary,fallback)
-        output={**response,"session_id":sid,"turn":expected_turn,
+        output={**_decorate(expected_turn,clean,response),
+                "session_id":sid,"turn":expected_turn,
                 "next_turn":expected_turn+1 if expected_turn<MAX_TURNS else None,
-                "replayed":False,"schema":SCHEMA,"input_scope":head["scope"],
-                "escalamiento_para_usuario":_handoff_for_user(
-                    expected_turn,response["status"])}
+                "replayed":False,"schema":SCHEMA,"input_scope":head["scope"]}
         self.db.execute("BEGIN IMMEDIATE")
         try:
             current=self.db.execute("SELECT last_turn FROM guided_sessions WHERE sid=?",

@@ -1,0 +1,66 @@
+{
+  "date": "2026-11-18",
+  "deterministic_handoff_is_not_model_diagnostic_success": true,
+  "deterministic_v4_third_turn_escalation": 24,
+  "evaluation": {
+    "2026-08": {
+      "cases": 12,
+      "metrics": {
+        "turn1_hardened_proposal_accepted": 12,
+        "turn1_presentation_rendered": 12,
+        "turn2_hardened_proposal_accepted": 12,
+        "turn2_presentation_rendered": 12,
+        "turn2_simplification_stage": 12,
+        "turn3_handoff_due_to_human_triage": 1,
+        "turn3_handoff_due_to_persistence": 11,
+        "turn3_handoff_in_simple_text": 12,
+        "turn3_handoff_visible": 12,
+        "turn3_hardened_proposal_accepted": 11,
+        "turn3_presentation_rendered": 12
+      },
+      "previous_model_turns": 36
+    },
+    "2026-09": {
+      "cases": 12,
+      "metrics": {
+        "hardened_gate_UNVERIFIED_CAUSAL_OR_CLOSURE_CLAIM_IN_TEXT": 1,
+        "turn1_hardened_proposal_accepted": 12,
+        "turn1_presentation_rendered": 12,
+        "turn2_hardened_proposal_accepted": 10,
+        "turn2_presentation_rendered": 12,
+        "turn2_simplification_stage": 12,
+        "turn3_handoff_due_to_human_triage": 2,
+        "turn3_handoff_due_to_persistence": 10,
+        "turn3_handoff_in_simple_text": 12,
+        "turn3_handoff_visible": 12,
+        "turn3_hardened_proposal_accepted": 10,
+        "turn3_presentation_rendered": 12
+      },
+      "previous_model_turns": 36
+    }
+  },
+  "fresh_llm_calls": 0,
+  "historical_solutions_used": false,
+  "identical_paired_sample_24": true,
+  "limitations": [
+    "No human comprehension test",
+    "No actual screen events",
+    "Potential V4 gate rejects additional former accepted response",
+    "All stage-specific human replies simulated"
+  ],
+  "method": "OFFLINE_REPLAY_OF_PREVIOUS_72_REAL_QWEN_GUIDES",
+  "model_v3_third_turn_escalation": 17,
+  "original_baseline_model_third_turn_escalation": 21,
+  "original_llm_sample_calls": 72,
+  "private_transcripts_not_published": true,
+  "private_transcripts_sha256": "712bf1a0789d23c24cb003bde3d8e3462fae48cf7e980395b2e3893223d4b45f",
+  "real_diagnoses_certified": 0,
+  "real_repairs_executed": 0,
+  "replayed_cases": 24,
+  "schema": "else.itil.qa.guided-v4-output-projection.v1",
+  "source_original_cases": {
+    "2026-08": 1819,
+    "2026-09": 545
+  },
+  "understanding_tested_with_real_people": false
+}
