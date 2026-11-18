@@ -78,7 +78,9 @@ _USER_UNSAFE=re.compile(
     r"\binstala(?:r|ci[oó]n)?\b|\bpermisos?\b|"
     r"\bprivilegios?\b|\brecibo corporativo\b|\bfirma digital\b|"
     r"\bmodifica\b|\bdesactiva\b|\belimina\b|\bborra\b|"
-    r"\brestablece\b|\bdesbloquea\b|\bhabilita\b|\botorga\b)",
+    r"\brestablece\b|\bdesbloquea\b|\bhabilita\b|\botorga\b|"
+    r"\bejecuta\b|\breinicia\b|\bdesconecta\b|\bapaga\b|"
+    r"\bformatea\b|\bdesinstala\b|\brestaura\b|\breconfigura\b)",
     re.I)
 _ASK_SECRET=re.compile(
     r"(?:dame|env[ií](?:a|ame)|comparte|proporciona|entrega|escribe|adjunta)"
@@ -86,7 +88,9 @@ _ASK_SECRET=re.compile(
     re.I)
 _UNSAFE_BRANCH_ORDER=re.compile(
     r"\b(?:ejecuta|instala|configura|modifica|elimina|borra|desactiva|habilita|"
-    r"otorga|restablece|desbloquea|cambia\s+(?:el\s+|los\s+)?permisos?|consulta\s+(?:la\s+)?tabla)\b",
+    r"otorga|restablece|desbloquea|ejecuta|reinicia|desconecta|apaga|"
+    r"formatea|desinstala|restaura|reconfigura|"
+    r"cambia\s+(?:el\s+|los\s+)?permisos?|consulta\s+(?:la\s+)?tabla)\b",
     re.I)
 _SECRET_FREE_TEXT=re.compile(
     r"(?i)\b(?:mi\s+)?(?:contrase[nñ]a|password|clave(?:\s+de\s+acceso)?|"
@@ -126,6 +130,8 @@ def validate_guidance(obj:object,previous_step:str="")->list[str]:
         flags.append("FALSE_CAUSAL_OR_EXECUTION_CLAIM")
     if not _text(obj.get("que_entendi"),20,410):flags.append("SUMMARY_INVALID")
     evidence_texts=[obj.get("que_entendi","")]
+    if isinstance(obj.get("hipotesis"),list):
+        evidence_texts.extend(obj["hipotesis"])
     if isinstance(obj.get("para_ti"),dict):
         evidence_texts.extend(obj["para_ti"].values())
     if isinstance(obj.get("para_soporte"),dict):

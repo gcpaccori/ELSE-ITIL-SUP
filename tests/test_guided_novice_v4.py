@@ -279,3 +279,23 @@ def test_private_http_exposes_user_text_and_early_escalation(tmp_path):
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
+
+
+def test_causal_certainty_inside_hypothesis_is_not_excused_by_boolean():
+    obj=_safe_fallback()
+    obj["hipotesis"][0]="La causa es un error de cuentas, lo hemos confirmado en producción."
+    assert "UNVERIFIED_CAUSAL_OR_CLOSURE_CLAIM_IN_TEXT" in validate_guidance(obj)
+
+
+def test_action_verbs_that_mutate_system_are_not_user_diagnostics():
+    commands=[
+      "Reinicia el servidor y observa qué sucede al entrar.",
+      "Ejecuta los pasos del procedimiento técnico sin permisos.",
+      "Apaga el equipo y revisa si responde después.",
+      "Desconecta la red de trabajo para cambiar el acceso.",
+      "Restaurar no; restaura la configuración antigua sin autorización.",
+    ]
+    for action in commands:
+        obj=_safe_fallback()
+        obj["para_ti"]["paso"]=action
+        assert "USER_ADMIN_OR_SECRET_ACTION" in validate_guidance(obj),action
