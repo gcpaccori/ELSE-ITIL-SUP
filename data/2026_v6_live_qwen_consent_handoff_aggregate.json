@@ -1,0 +1,42 @@
+{
+  "accuracy_not_measured": true,
+  "business_changes_executed": false,
+  "business_source_queried": false,
+  "business_sso_connected": false,
+  "case_count": 1,
+  "consented_packet_signed_verified": true,
+  "corporate_ticket_identity_bound": false,
+  "date": "2026-11-19",
+  "deterministic_handoff_turns": 1,
+  "end_to_end_slo_not_certified": true,
+  "human_reviews_completed": 0,
+  "model_contract_accepted_per_turn": [
+    true,
+    true,
+    false
+  ],
+  "qa_hand_started": false,
+  "raw_ticket_text_published": false,
+  "readiness": "NO_GO",
+  "real_qwen_turns": 2,
+  "registered_core_goals_available": [
+    "ITIL_CASE_EXISTS",
+    "ITIL_SERVICE",
+    "ITIL_MODULE"
+  ],
+  "revoke_all_online_verification_fails_with_422": true,
+  "root_causes_certified": 0,
+  "schema": "else.itil.qa.v6-live-qwen-human-handoff.v1",
+  "source": "SYNTHETIC_PILOT_ONLY",
+  "status_per_turn": [
+    "GUIDED_DIAGNOSTIC_CONDITIONAL",
+    "GUIDED_DIAGNOSTIC_CONDITIONAL",
+    "NEEDS_HUMAN_TRIAGE"
+  ],
+  "turn_count": 3,
+  "wall_seconds_per_turn": [
+    20.169,
+    10.465,
+    0.004
+  ]
+}
