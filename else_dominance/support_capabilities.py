@@ -8,7 +8,8 @@ from __future__ import annotations
 
 def inventory(*, guided:bool, principal_scoped:bool,
               fast_handoff:bool,qa_dispatch:bool,
-              readiness:bool,admission_limited:bool)->dict:
+              readiness:bool,admission_limited:bool,
+              handoff_receipts:bool=False)->dict:
     def item(name,status,evidence_type):
         return {"capability":name,"state":status,
                 "evidence_type":evidence_type}
@@ -38,6 +39,10 @@ def inventory(*, guided:bool, principal_scoped:bool,
        item("automatic_mutations_or_repairs",
             "DISABLED","RUNTIME"),
     ]
+    if handoff_receipts:
+        names.append(item("user_consent_cryptographic_support_handoff",
+            "PILOT_ENABLED" if guided and principal_scoped
+            else "DISABLED","RUNTIME_SIGNED_CONSENT_LEDGER"))
     assert len(names)==len({x["capability"] for x in names})
     return {
        "schema":"else.itil.support-capability-inventory.v1",

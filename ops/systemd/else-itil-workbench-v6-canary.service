@@ -1,0 +1,13 @@
+[Unit]
+Description=ELSE-ITIL V6 isolated human handoff workbench, no repair actions
+After=network.target
+[Service]
+Type=simple
+WorkingDirectory=/home/u23u/else_itil_workbench_v6_20261119/release_main
+ExecStart=/bin/bash /home/u23u/else_itil_workbench_v6_20261119/release_main/ops/run_specialist_v6_workbench_canary.sh
+Restart=on-failure
+RestartSec=15
+UMask=0077
+NoNewPrivileges=true
+[Install]
+WantedBy=default.target
