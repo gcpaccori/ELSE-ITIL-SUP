@@ -22,6 +22,8 @@ from .guided_dialogue import GuidedStore
 from .guided_principal_auth import PrincipalRegistry
 from .maturity_readiness import load_readiness,load_human_review_status
 from .support_capabilities import inventory
+from .support_handoff import HandoffSigner
+from .support_ui import HTML as USER_HTML,CSS as USER_CSS,JS as USER_JS
 from .qa_dispatch_queue import QaDispatchQueue, load_allowed, COHORTS, obj as strict_qa_json
 from .core_capability import ParetoInvestigationCore
 import re
@@ -36,9 +38,12 @@ def make_handler(*, token: str, state_db: Path, primary, fallback,
                  guided_primary=None, guided_fallback=None,
                  fast_handoff:bool=False, guided_max_inflight:int | None=None,
                  readiness:dict | None=None,
-                 human_review_status:dict | None=None):
+                 human_review_status:dict | None=None,
+                 handoff_signer:HandoffSigner | None=None):
     if principal_registry is not None and guided_db is None:
         raise ValueError("GUIDED_PRINCIPALS_REQUIRE_GUIDED_STORE")
+    if handoff_signer is not None and (principal_registry is None or guided_db is None):
+        raise ValueError("HANDOFF_REQUIRES_PRINCIPAL_SCOPED_GUIDED_STORE")
     if fast_handoff and guided_db is None:
         raise ValueError("GUIDED_FAST_HANDOFF_REQUIRES_STORE")
     if guided_max_inflight is not None and (
@@ -104,6 +109,25 @@ def make_handler(*, token: str, state_db: Path, primary, fallback,
             self.end_headers()
             self.wfile.write(raw)
 
+        def static(self,content:str,content_type:str):
+            payload=content.encode("utf8")
+            self.send_response(200)
+            self.send_header("Content-Type",content_type)
+            self.send_header("Content-Length",str(len(payload)))
+            self.send_header("Cache-Control","no-store")
+            self.send_header("X-Content-Type-Options","nosniff")
+            self.send_header("X-Frame-Options","DENY")
+            self.send_header("Referrer-Policy","no-referrer")
+            self.send_header("Permissions-Policy",
+                "camera=(), microphone=(), geolocation=()")
+            self.send_header("Content-Security-Policy",
+                "default-src 'none'; script-src 'self'; style-src 'self'; "
+                "connect-src 'self'; form-action 'none'; "
+                "img-src 'none'; object-src 'none'; base-uri 'none'; "
+                "frame-ancestors 'none'")
+            self.end_headers()
+            self.wfile.write(payload)
+
         def authorized(self):
             return hmac.compare_digest(
                 self.headers.get('Authorization',''),'Bearer '+token)
@@ -116,6 +140,15 @@ def make_handler(*, token: str, state_db: Path, primary, fallback,
             return subject is not None,subject
 
         def do_GET(self):
+            if handoff_signer is not None and self.path in (
+                  '/v1/support/ui','/v1/support/ui.css','/v1/support/ui.js'):
+                contents={
+                    '/v1/support/ui':(USER_HTML,'text/html; charset=utf-8'),
+                    '/v1/support/ui.css':(USER_CSS,'text/css; charset=utf-8'),
+                    '/v1/support/ui.js':(USER_JS,'text/javascript; charset=utf-8'),
+                }
+                body,ctype=contents[self.path]
+                return self.static(body,ctype)
             if self.path=='/health':
                 payload={'service':'ELSE-ITIL-SUP','state':'READY',
                          'source_access':'USER_SUBMITTED_ONLY',
@@ -127,7 +160,28 @@ def make_handler(*, token: str, state_db: Path, primary, fallback,
                     payload["guided_principal_required"]=True
                 if fast_handoff:
                     payload["guided_fast_safe_handoff"]=True
+                if handoff_signer is not None:
+                    payload["user_consent_handoff_enabled"]=True
                 return self.respond(200,payload)
+            if self.path.startswith('/v1/support/guided/case/'):
+                if guided_db is None or handoff_signer is None:
+                    return self.respond(404,{'error':'HANDOFF_NOT_ENABLED'})
+                identity_ok,principal=self.guided_identity()
+                if not identity_ok:
+                    return self.respond(401,{'error':'AUTH_REQUIRED'})
+                sid=self.path[len('/v1/support/guided/case/'):]
+                try:
+                    db=GuidedStore(guided_db,require_principal=True,
+                                   fast_handoff=fast_handoff)
+                    try:
+                        result=db.case_view(sid,subject_id=principal)
+                    finally:
+                        db.close()
+                    return self.respond(200,result)
+                except ValueError as exc:
+                    return self.respond(422,{'error':str(exc)[:80]})
+                except Exception:
+                    return self.respond(503,{'error':'GUIDED_CASE_UNAVAILABLE'})
             if self.path=='/v1/support/capabilities':
                 if not self.authorized():
                     return self.respond(401,{'error':'AUTH_REQUIRED'})
@@ -138,6 +192,7 @@ def make_handler(*, token: str, state_db: Path, primary, fallback,
                     qa_dispatch=allowed is not None,
                     readiness=readiness is not None,
                     admission_limited=guided_max_inflight is not None,
+                    handoff_receipts=handoff_signer is not None,
                 ))
             if self.path=='/v1/support/readiness':
                 if readiness is None:
@@ -150,6 +205,7 @@ def make_handler(*, token: str, state_db: Path, primary, fallback,
                     "private_principal_scope_enabled":principal_registry is not None,
                     "guided_admission_limit":guided_max_inflight,
                     "guided_runtime":runtime_metrics(),
+                    "user_consent_handoff_enabled":handoff_signer is not None,
                     "human_review":human_review_status or {
                         "status":"NOT_CONFIGURED",
                         "causal_diagnosis_certified":False},
@@ -233,6 +289,83 @@ def make_handler(*, token: str, state_db: Path, primary, fallback,
                 return self.respond(503,{'error':'GUIDED_SUPPORT_UNAVAILABLE'})
 
         def do_POST(self):
+            if self.path in ('/v1/support/guided/handoff',
+                             '/v1/support/guided/revoke',
+                             '/v1/support/guided/revoke-all'):
+                if guided_db is None or handoff_signer is None:
+                    return self.respond(404,{'error':'HANDOFF_NOT_ENABLED'})
+                identity_ok,principal=self.guided_identity()
+                if not identity_ok:
+                    return self.respond(401,{'error':'AUTH_REQUIRED'})
+                try:
+                    size=int(self.headers.get('Content-Length','-1'))
+                    if not 0<size<=500:
+                        return self.respond(413,{'error':'INPUT_LIMIT'})
+                    req=json.loads(self.rfile.read(size))
+                    if not isinstance(req,dict):
+                        raise ValueError('HANDOFF_REQUEST_NOT_OBJECT')
+                    issue=self.path.endswith('/handoff')
+                    if issue and set(req)!={
+                          'session_id','consent_to_share',
+                          'privacy_notice_acknowledged'}:
+                        raise ValueError('HANDOFF_FIELDS_INVALID')
+                    revoke_all=self.path.endswith('/revoke-all')
+                    if revoke_all and set(req)!={'session_id'}:
+                        raise ValueError('HANDOFF_REVOKE_ALL_FIELDS_INVALID')
+                    if not issue and not revoke_all and set(req)!={
+                            'session_id','receipt_id'}:
+                        raise ValueError('HANDOFF_REVOKE_FIELDS_INVALID')
+                    sid=req['session_id']
+                    if not isinstance(sid,str) or not re.fullmatch(
+                            '[0-9a-f]{48}',sid):
+                        raise ValueError('GUIDED_SESSION_ID_INVALID')
+                    key=principal+'|'+sid
+                    stripe=int.from_bytes(sha256(key.encode()).digest()[:2],
+                                          'big')%len(guided_locks)
+                    with guided_locks[stripe]:
+                        db=GuidedStore(guided_db,require_principal=True,
+                                       fast_handoff=fast_handoff)
+                        try:
+                            if issue:
+                                result=db.issue_handoff(
+                                    sid,subject_id=principal,
+                                    consent_to_share=req['consent_to_share'],
+                                    privacy_notice_acknowledged=req[
+                                       'privacy_notice_acknowledged'],
+                                    signer=handoff_signer)
+                            elif revoke_all:
+                                result=db.revoke_all_handoffs(
+                                    sid,subject_id=principal)
+                            else:
+                                result=db.revoke_handoff(
+                                    sid,req['receipt_id'],subject_id=principal)
+                        finally:db.close()
+                    return self.respond(200,result)
+                except (ValueError,TypeError,KeyError,json.JSONDecodeError) as exc:
+                    return self.respond(422,{'error':str(exc)[:90]})
+                except Exception:
+                    return self.respond(503,{'error':'HANDOFF_UNAVAILABLE'})
+            if self.path=='/v1/support/technician/verify-handoff':
+                if guided_db is None or handoff_signer is None:
+                    return self.respond(404,{'error':'HANDOFF_NOT_ENABLED'})
+                if not self.authorized():
+                    return self.respond(401,{'error':'AUTH_REQUIRED'})
+                try:
+                    size=int(self.headers.get('Content-Length','-1'))
+                    if not 0<size<=12000:
+                        return self.respond(413,{'error':'INPUT_LIMIT'})
+                    request=json.loads(self.rfile.read(size))
+                    if not isinstance(request,dict) or set(request)!={'envelope'}:
+                        raise ValueError('HANDOFF_VERIFY_FIELDS_INVALID')
+                    db=GuidedStore(guided_db,require_principal=True,
+                                   fast_handoff=fast_handoff)
+                    try:result=db.verify_handoff(request['envelope'],handoff_signer)
+                    finally:db.close()
+                    return self.respond(200,result)
+                except (ValueError,TypeError,KeyError,json.JSONDecodeError) as exc:
+                    return self.respond(422,{'error':str(exc)[:90]})
+                except Exception:
+                    return self.respond(503,{'error':'HANDOFF_VERIFICATION_UNAVAILABLE'})
             if self.path in ('/v1/support/guided/start',
                              '/v1/support/guided/continue'):
                 if guided_db is None:
@@ -364,6 +497,7 @@ def main():
     p.add_argument('--maturity-scorecard',type=Path,default=None)
     p.add_argument('--maturity-source-summary',type=Path,default=None)
     p.add_argument('--human-review-status-file',type=Path,default=None)
+    p.add_argument('--handoff-signing-key-file',type=Path,default=None)
     args=p.parse_args()
     if (args.qa_queue_db is None) != (args.qa_allowlist is None):
         p.error('QA_DISPATCH_CONFIGURATION_INCOMPLETE')
@@ -371,6 +505,9 @@ def main():
         p.error('MATURITY_EVIDENCE_PAIR_REQUIRED')
     if args.guided_principals_file is not None and args.guided_db is None:
         p.error('GUIDED_PRINCIPALS_REQUIRE_GUIDED_STORE')
+    if args.handoff_signing_key_file is not None and (
+            args.guided_principals_file is None or args.guided_db is None):
+        p.error('HANDOFF_REQUIRES_PRINCIPAL_SCOPED_GUIDED_STORE')
     if args.guided_fast_handoff and args.guided_db is None:
         p.error('GUIDED_FAST_HANDOFF_REQUIRES_STORE')
     for t in (args.guided_primary_timeout,args.guided_fallback_timeout):
@@ -399,6 +536,8 @@ def main():
                if args.maturity_scorecard is not None else None)
     human_review=(load_human_review_status(args.human_review_status_file)
                   if args.human_review_status_file is not None else None)
+    handoff=(HandoffSigner.from_file(args.handoff_signing_key_file)
+             if args.handoff_signing_key_file is not None else None)
     # Fail before accepting HTTP requests if the private store cannot be
     # opened, migrated atomically, or verified for restrictive permissions.
     if args.guided_db is not None:
@@ -414,7 +553,8 @@ def main():
         principal_registry=registry,guided_primary=gp,guided_fallback=gf,
         fast_handoff=args.guided_fast_handoff,
         guided_max_inflight=args.guided_max_inflight,
-        readiness=readiness,human_review_status=human_review))
+        readiness=readiness,human_review_status=human_review,
+        handoff_signer=handoff))
     print('SUPPORT_API_READY host=127.0.0.1 port='+str(args.port)+
           ' mode=user_submitted_no_mutations qa_dispatch='+
           str(args.qa_queue_db is not None)+

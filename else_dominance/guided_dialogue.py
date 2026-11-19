@@ -18,6 +18,9 @@ import sqlite3
 
 from .support_desk import validate_ticket
 from .resolution_batch import redact
+from .support_handoff import (
+    HandoffSigner,safe_handoff_packet,payload_digest,utc_timestamp)
+from .core_capability import DEFAULT_GOALS as VERIFIED_QA_CORE_DEFAULT_GOALS
 
 SCHEMA="else.itil.guided-novice.v2"
 MAX_TURNS=6
@@ -510,12 +513,24 @@ class GuidedStore:
             "sid TEXT NOT NULL, turn INTEGER NOT NULL, input_hash TEXT NOT NULL,"
             "reply TEXT NOT NULL, result_json TEXT NOT NULL,"
             "PRIMARY KEY (sid,turn), FOREIGN KEY (sid) REFERENCES guided_sessions(sid))")
+        # Local consent ledger; never a corporate case update. Revocation
+        # invalidates an issued transfer even if the user retains its JSON.
+        self.db.execute("CREATE TABLE IF NOT EXISTS guided_handoffs ("
+            "receipt_id TEXT PRIMARY KEY, sid TEXT NOT NULL,"
+            "last_turn INTEGER NOT NULL, issued_utc TEXT NOT NULL,"
+            "expires_utc TEXT NOT NULL, payload_sha256 TEXT NOT NULL,"
+            "revoked INTEGER NOT NULL DEFAULT 0 CHECK (revoked IN (0,1)),"
+            "FOREIGN KEY(sid) REFERENCES guided_sessions(sid))")
         # Automatic 30-day retention cleanup. No live incident/repair access.
         now=datetime.now(timezone.utc).isoformat()
         self.db.execute("BEGIN IMMEDIATE")
         try:
             self.db.execute("DELETE FROM guided_turns WHERE sid IN "
                             "(SELECT sid FROM guided_sessions WHERE expires<=?)",(now,))
+            self.db.execute(
+                "DELETE FROM guided_handoffs WHERE sid IN "
+                "(SELECT sid FROM guided_sessions WHERE expires<=?) "
+                "OR expires_utc<=?",(now,now))
             self.db.execute("DELETE FROM guided_sessions WHERE expires<=?",(now,))
             self.db.execute("COMMIT")
         except Exception:
@@ -654,3 +669,203 @@ class GuidedStore:
         except Exception:
             self.db.execute("ROLLBACK")
             raise
+
+
+    def _owned_session(self,sid:str,subject_id:str|None):
+        principal=_validate_subject(subject_id,self.require_principal)
+        if not isinstance(sid,str) or not SESSION_PATTERN.fullmatch(sid):
+            raise ValueError("GUIDED_SESSION_ID_INVALID")
+        row=self.db.execute("SELECT * FROM guided_sessions WHERE sid=?",
+                            (sid,)).fetchone()
+        if row is None or row["subject_id"]!=principal:
+            raise ValueError("GUIDED_SESSION_NOT_FOUND")
+        if utc_timestamp(row["expires"])<=datetime.now(timezone.utc):
+            raise ValueError("GUIDED_SESSION_EXPIRED")
+        return row
+
+    def _safe_observations(self,sid:str)->list[dict]:
+        entries=[]
+        for row in self.db.execute(
+             "SELECT turn,reply,result_json FROM guided_turns "
+             "WHERE sid=? ORDER BY turn",(sid,)):
+            raw=json.loads(row["result_json"])
+            projected=_presentation_for_legacy_replay(
+                row["turn"],row["reply"],raw)
+            # The stored UI projection is *not* an authoritative source.
+            # Regenerate it from the currently gated guide even on old rows.
+            visible=_presentation(row["turn"],row["reply"],projected)
+            check=visible["paso_para_principiante"]
+            entries.append({
+                "turn":row["turn"],
+                "reported_by_user":_scrub(row["reply"])[:500],
+                "safe_screen_check":_scrub(check)[:300],
+                "model_format_accepted":bool(projected["quality"]["accepted"]),
+                "workflow_status":projected["status"],
+            })
+        return entries
+
+    def case_view(self,sid:str,*,subject_id:str|None=None)->dict:
+        """Current user's view. No ticket SQL, other sessions or claims of repair."""
+        row=self._owned_session(sid,subject_id)
+        observations=self._safe_observations(sid)
+        if len(observations)!=row["last_turn"]:
+            raise ValueError("GUIDED_STATE_TURNS_INCONSISTENT")
+        last=self.db.execute(
+           "SELECT result_json,reply FROM guided_turns WHERE sid=? "
+           "AND turn=?",(sid,row["last_turn"])).fetchone()
+        if last is None:raise ValueError("GUIDED_LAST_TURN_MISSING")
+        projected=_presentation_for_legacy_replay(row["last_turn"],
+             last["reply"],json.loads(last["result_json"]))
+        visible=_presentation(row["last_turn"],last["reply"],projected)
+        return {
+            "schema":"else.itil.guided-case-view.v1",
+            "session_id":sid,
+            "service":_scrub(row["service"])[:120],
+            "reported_issue":_scrub(row["initial"])[:800],
+            "last_turn":row["last_turn"],
+            "max_turns":MAX_TURNS,
+            "next_turn":(row["last_turn"]+1 if row["last_turn"]<MAX_TURNS
+                         else None),
+            "expires_utc":row["expires"],
+            "observations":observations,
+            "current_stage":visible["etapa"],
+            "next_safe_step":_scrub(visible["paso_para_principiante"])[:300],
+            "support_handoff_recommended":bool(visible["mostrar_escalamiento"]),
+            "identity_scope":"CURRENT_AUTHENTICATED_PILOT_PRINCIPAL_ONLY",
+            "corp_case_binding":"NOT_ESTABLISHED",
+            "root_cause_certified":False,
+            "repairs_performed":False,
+        }
+
+    def issue_handoff(self,sid:str,*,subject_id:str|None=None,
+                      consent_to_share:bool,privacy_notice_acknowledged:bool,
+                      signer:HandoffSigner)->dict:
+        """Explicit user action: export one bounded immutable support snapshot."""
+        if (consent_to_share is not True or
+            privacy_notice_acknowledged is not True):
+            raise ValueError("HANDOFF_EXPLICIT_CONSENT_REQUIRED")
+        if not isinstance(signer,HandoffSigner):
+            raise ValueError("HANDOFF_SIGNER_REQUIRED")
+        row=self._owned_session(sid,subject_id)
+        observations=self._safe_observations(sid)
+        if len(observations)!=row["last_turn"]:
+            raise ValueError("HANDOFF_INCOMPLETE_TURN_HISTORY")
+        now=datetime.now(timezone.utc)
+        receipt=secrets.token_hex(16)
+        packet=safe_handoff_packet(
+            receipt_id=receipt,case_handle=signer.case_handle(sid),
+            service=_scrub(row["service"])[:120],
+            issue_reported=_scrub(row["initial"])[:800],
+            issued=now,last_turn=row["last_turn"],
+            observations=observations)
+        signed=signer.sign(packet)
+        signer.verify(signed,now=now)
+        self.db.execute("BEGIN IMMEDIATE")
+        try:
+            # Do not issue from a stale snapshot during another in-flight turn.
+            current=self.db.execute(
+                "SELECT last_turn FROM guided_sessions WHERE sid=?",
+                (sid,)).fetchone()
+            if not current or current["last_turn"]!=row["last_turn"]:
+                raise ValueError("HANDOFF_CONCURRENT_TURN_CHANGED")
+            self.db.execute(
+                "INSERT INTO guided_handoffs "
+                "(receipt_id,sid,last_turn,issued_utc,expires_utc,payload_sha256) "
+                "VALUES(?,?,?,?,?,?)",
+                (receipt,sid,row["last_turn"],packet["issued_utc"],
+                 packet["expires_utc"],payload_digest(packet)))
+            self.db.execute("COMMIT")
+        except Exception:
+            self.db.execute("ROLLBACK")
+            raise
+        return signed
+
+    def revoke_handoff(self,sid:str,receipt_id:str,
+                       *,subject_id:str|None=None)->dict:
+        row=self._owned_session(sid,subject_id)
+        if not isinstance(receipt_id,str) or not re.fullmatch(
+             r"[0-9a-f]{32}",receipt_id):
+            raise ValueError("HANDOFF_RECEIPT_ID_INVALID")
+        self.db.execute("BEGIN IMMEDIATE")
+        try:
+            result=self.db.execute(
+                "UPDATE guided_handoffs SET revoked=1 WHERE "
+                "receipt_id=? AND sid=?",(receipt_id,row["sid"]))
+            if result.rowcount!=1:
+                raise ValueError("HANDOFF_RECEIPT_NOT_FOUND")
+            self.db.execute("COMMIT")
+        except Exception:
+            self.db.execute("ROLLBACK")
+            raise
+        return {
+            "schema":"else.itil.handoff-revocation.v1",
+            "receipt_id":receipt_id,
+            "revoked":True,
+            "corporate_case_modified":False,
+        }
+
+    def revoke_all_handoffs(self,sid:str,*,subject_id:str|None=None)->dict:
+        """Revoke every outstanding verification for this user's case."""
+        self._owned_session(sid,subject_id)
+        self.db.execute("BEGIN IMMEDIATE")
+        try:
+            result=self.db.execute(
+                "UPDATE guided_handoffs SET revoked=1 WHERE sid=? AND revoked=0",
+                (sid,))
+            count=result.rowcount
+            self.db.execute("COMMIT")
+        except Exception:
+            self.db.execute("ROLLBACK")
+            raise
+        return {
+            "schema":"else.itil.handoff-revocation-all.v1",
+            "revoked_count":count,
+            "future_online_verification_blocked":True,
+            "offline_copies_deleted":False,
+            "corporate_case_modified":False,
+        }
+
+    def verify_handoff(self,envelope:object,signer:HandoffSigner)->dict:
+        """Technician-only verification, not case authorization or causal proof."""
+        packet=signer.verify(envelope)
+        row=self.db.execute(
+            "SELECT h.sid,h.last_turn,h.issued_utc,h.expires_utc,"
+            "h.payload_sha256,h.revoked,s.expires AS session_expires,"
+            "s.last_turn AS current_turn FROM guided_handoffs h "
+            "JOIN guided_sessions s ON s.sid=h.sid WHERE h.receipt_id=?",
+            (packet["receipt_id"],)).fetchone()
+        if (row is None or row["revoked"] or
+            row["payload_sha256"]!=payload_digest(packet) or
+            row["last_turn"]!=packet["last_turn"] or
+            row["issued_utc"]!=packet["issued_utc"] or
+            row["expires_utc"]!=packet["expires_utc"] or
+            utc_timestamp(row["session_expires"])<=datetime.now(timezone.utc) or
+            signer.case_handle(row["sid"])!=packet["case_handle"]):
+            raise ValueError("HANDOFF_RECEIPT_NOT_ACTIVE_OR_BOUND")
+        return {
+            "schema":"else.itil.handoff-technician-verification.v1",
+            "signature_valid":True,
+            "consent_record_valid":True,
+            "receipt_id":packet["receipt_id"],
+            "issued_utc":packet["issued_utc"],
+            "expires_utc":packet["expires_utc"],
+            "reported_case":packet,
+            "snapshot_at_turn":packet["last_turn"],
+            "later_guided_turns_exist":row["current_turn"]>packet["last_turn"],
+            "human_identity_certified":False,
+            "business_case_identity_verified":False,
+            "business_evidence_verified":False,
+            "root_cause_certified":False,
+            "repair_performed":False,
+            "next_authorized_step":"VALIDATE_CASE_AND_SOURCE_BEFORE_QA_HAND_DISPATCH",
+            "technical_investigation_preflight":{
+                "registered_core_evidence_goals":list(VERIFIED_QA_CORE_DEFAULT_GOALS),
+                "qa_case_sha256_bound":False,
+                "qa_allowlist_eligibility_verified":False,
+                "corporate_ticket_owner_authorized":False,
+                "o5_o13_o15_receipts_present":False,
+                "qa_hand_execution_started":False,
+                "prerequisite":"AUTHORIZED_EXACT_CASE_MAPPING_AND_VERIFIED_QA_RECEIPT",
+                "independent_business_object_relation":"NOT_VERIFIED",
+            },
+        }
